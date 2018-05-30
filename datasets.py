@@ -6,11 +6,11 @@ from PIL import Image
 from datasetutils.image import load_imgpaths_from_dir
 
 class ImageDataset(data.Dataset):
-    def __init__(self, root, transform=None):
+    def __init__(self, data_dir, transform=None):
         super(ImageDataset, self).__init__()
-        self.root = os.path.expanduser(root)
+        self.data_dir = os.path.expanduser(data_dir)
         self.transform = transform
-        self.imgpaths = load_imgpaths_from_dir(self.root)
+        self.imgpaths = load_imgpaths_from_dir(self.data_dir)
 
     def __len__(self):
         return len(self.imgpaths)
