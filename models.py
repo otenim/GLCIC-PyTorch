@@ -111,7 +111,9 @@ class LocalDiscriminator(nn.Module):
         # input_shape: (None, 512, img_h//32, img_w//32)
         in_features = 512 * (self.img_h//32) * (self.img_w//32)
         self.flatten6 = Flatten()
+        # input_shape: (None, 512 * img_h//32 * img_w//32)
         self.linear6 = nn.Linear(in_features, 1024)
+        # output_shape: (None, 1024)
 
     def forward(self, x):
         x = F.relu(self.bn1(self.conv1(x)))
@@ -152,7 +154,9 @@ class GlobalDiscriminator(nn.Module):
         # input_shape: (None, 512, img_h//64, img_w//64)
         in_features = 512 * (self.img_h//64) * (self.img_w//64)
         self.flatten7 = Flatten()
+        # input_shape: (None, 512 * img_h//64 * img_w//64)
         self.linear7 = nn.Linear(in_features, 1024)
+        # output_shape: (None, 1024)
 
     def forward(self, x):
         x = F.relu(self.bn1(self.conv1(x)))
@@ -175,7 +179,9 @@ class ContextDiscriminator(nn.Module):
         # input_shape: [(None, 1024), (None, 1024)]
         in_features = self.model_ld.output_shape[-1] + self.model_gd.output_shape[-1]
         self.concat1 = Concatenate(dim=-1)
+        # input_shape: (None, 2048)
         self.linear1 = nn.Linear(in_features, 1)
+        # output_shape: (None, 1)
 
     def forward(self, x):
         x_ld, x_gd = x
