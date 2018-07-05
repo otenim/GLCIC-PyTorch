@@ -1,5 +1,4 @@
 from models import CompletionNetwork, LocalDiscriminator, GlobalDiscriminator, ContextDiscriminator
-from torch.autograd import Variable
 import torch
 
 model_c = CompletionNetwork(input_shape=(3, 256, 256))
@@ -11,9 +10,9 @@ print(model_ld)
 print(model_gd)
 print(model_d)
 
-x_c = Variable(torch.rand(1, 3, 256, 256))
-x_ld = Variable(torch.rand(1, 3, 128, 128))
-x_gd = Variable(torch.rand(1, 3, 256, 256))
+x_c = torch.rand(1, 3, 256, 256)
+x_ld = torch.rand(1, 3, 128, 128)
+x_gd = torch.rand(1, 3, 256, 256)
 outs_c = model_c(x_c)
 outs_ld = model_ld(x_ld)
 outs_gd = model_gd(x_gd)
