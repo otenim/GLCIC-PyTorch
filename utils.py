@@ -1,7 +1,7 @@
 import torch
 import random
 
-def generate_completion_mask(shape, patch_size=((16, 48), (16, 48)), max_patches=3):
+def generate_random_mask(shape, patch_size=((16, 48), (16, 48)), max_patches=3):
     bsize = shape[0]
     msks = []
     for i in range(bsize):
