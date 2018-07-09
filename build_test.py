@@ -1,7 +1,7 @@
 from models import CompletionNetwork, LocalDiscriminator, GlobalDiscriminator, ContextDiscriminator
 import torch
 
-model_c = CompletionNetwork(input_shape=(3, 256, 256))
+model_c = CompletionNetwork()
 model_ld = LocalDiscriminator(input_shape=(3, 128, 128))
 model_gd = GlobalDiscriminator(input_shape=(3, 256, 256))
 model_d = ContextDiscriminator(local_input_shape=(3, 128, 128), global_input_shape=(3, 256, 256))

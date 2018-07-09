@@ -5,15 +5,10 @@ from layers import Flatten, Concatenate
 
 
 class CompletionNetwork(nn.Module):
-    def __init__(self, input_shape):
+    def __init__(self):
         super(CompletionNetwork, self).__init__()
-        self.input_shape = input_shape
-        self.output_shape = input_shape
-        self.img_c = input_shape[0]
-        self.img_h = input_shape[1]
-        self.img_w = input_shape[2]
-        # input_shape: (None, img_c, img_h, img_w)
-        self.conv1 = nn.Conv2d(self.img_c, 64, kernel_size=5, stride=1, padding=2)
+        # input_shape: (None, 3, img_h, img_w)
+        self.conv1 = nn.Conv2d(3, 64, kernel_size=5, stride=1, padding=2)
         self.bn1 = nn.BatchNorm2d(64)
         # input_shape: (None, 64, img_h, img_w)
         self.conv2 = nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1)
@@ -61,7 +56,7 @@ class CompletionNetwork(nn.Module):
         self.conv16 = nn.Conv2d(64, 32, kernel_size=3, stride=1, padding=1)
         self.bn16 = nn.BatchNorm2d(32)
         # input_shape: (None, 32, img_h, img_w)
-        self.conv17 = nn.Conv2d(32, self.img_c, kernel_size=3, stride=1, padding=1)
+        self.conv17 = nn.Conv2d(32, 3, kernel_size=3, stride=1, padding=1)
         # output_shape: (None, 3, img_h. img_w)
 
     def forward(self, x):
