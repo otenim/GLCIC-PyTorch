@@ -69,9 +69,11 @@ def main(args):
     pbar.close()
     mpv /= len(imgpaths)
     mpv /= 255. # normalize
+    mpv = torch.tensor(mpv)
 
     # model & optimizer
-    model_cn = CompletionNetwork().to(device)
+    model_cn = CompletionNetwork()
+    model_cn = model_cn.to(device)
     opt_cn = Adadelta(model_cn.parameters(), lr=args.lr, rho=args.rho, weight_decay=args.wd)
 
     # training
@@ -79,7 +81,6 @@ def main(args):
     while pbar.n < args.Tc:
         for x in train_loader_1:
 
-            x.to(device)
             opt_cn.zero_grad()
 
             # generate patch region
@@ -100,13 +101,16 @@ def main(args):
 
             # merge x, mask, and mpv
             msg = 'phase 1|'
+            x = x.to(device)
+            msk = msk.to(device)
+            mpv = mpv.to(device)
             input = x - x * msk + mpv * msk
             output = model_cn(input)
             loss = completion_network_loss(x, output, msk)
             loss.backward()
             opt_cn.step()
 
-            msg += ' train loss: %.5f' % loss
+            msg += ' train loss: %.5f' % loss.cpu()
             pbar.set_description(msg)
             pbar.update()
             if pbar.n >= args.Tc:
