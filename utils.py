@@ -1,14 +1,13 @@
 import torch
 import random
 
-def generate_random_mask(
-    mask_shape, patch_size,
+def add_random_patches(
+    mask, patch_size,
     patch_region=None, max_patches=1):
 
-    bsize = mask_shape[0]
+    bsize = mask.shape[0]
     masks = []
     for i in range(bsize):
-        mask = torch.zeros(mask_shape[1:])
         _, mask_h, mask_w = mask.shape
         n_patches = random.choice(list(range(1, max_patches+1)))
         for j in range(n_patches):
