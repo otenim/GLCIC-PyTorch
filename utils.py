@@ -83,3 +83,18 @@ def gen_random_patch_region(mask_size, region_size):
     offset_x = random.randint(0, mask_w - region_w)
     offset_y = random.randint(0, mask_h - region_h)
     return ((offset_x, offset_y), (region_w, region_h))
+
+
+def crop_patch_region(x, patch_region):
+    """
+    * inputs:
+        - x (Tensor, required)
+                A pytorch 4D tensor (samples, c, h, w).
+        - patch_region (sequence, required)
+                A patch region ((x_min, y_min), (w, h)).
+    * returns:
+            A pytorch tensor cropped in the input patch region.
+    """
+    xmin, ymin = patch_region[0]
+    w, h = patch_region[1]
+    return x[:, :, ymin : ymin + h, xmin : xmin + w]
