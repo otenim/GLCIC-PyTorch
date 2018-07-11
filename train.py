@@ -1,4 +1,3 @@
-from tqdm import tqdm
 from models import CompletionNetwork, ContextDiscriminator
 from datasets import ImageDataset
 from losses import completion_network_loss
@@ -66,7 +65,7 @@ def main(args):
     opt_cn = Adadelta(model_cn.parameters())
 
     # training
-    pbar = tqdm(total=args.Tc, desc='training phase 1')
+    pbar = tqdm(total=args.Tc, desc='phase 1')
     while pbar.n < args.Tc:
         for x in train_loader_1:
 
@@ -89,12 +88,15 @@ def main(args):
             )
 
             # merge x, mask, and mpv
+            msg = 'phase1|'
             input = x - x * msk + mpv * msk
             output = model_cn(input)
             loss = completion_network_loss(x, output, msk)
             loss.backward()
             opt_cn.step()
 
+            msg += ' train loss: %.5f' % loss
+            pbar.set_description(msg)
             pbar.update()
             if pbar.n >= args.Tc:
                 break
