@@ -1,3 +1,4 @@
+from tqdm import tqdm
 from models import CompletionNetwork, ContextDiscriminator
 from datasets import ImageDataset
 from losses import completion_network_loss
