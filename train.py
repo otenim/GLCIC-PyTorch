@@ -133,7 +133,8 @@ def main(args):
                     x = x.to(device)
                     input = x - x * msk + mpv * msk
                     output = model_cn(input)
-                    imgs = torch.cat((input.cpu(), output.cpu()), dim=0)
+                    completed = x - x * msk + output * msk
+                    imgs = torch.cat((input.cpu(), completed.cpu()), dim=0)
                     fname = os.path.join(args.result_dir, 'step%d.png' % pbar.n)
                     save_image(imgs, fname, nrow=args.bsize)
 
