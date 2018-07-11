@@ -5,6 +5,32 @@ import random
 def add_random_patches(
     mask, patch_size,
     patch_region=None, max_patches=1):
+    """
+    * inputs:
+        - mask (pytorch tensor, required):
+                A (samples, c, h, w) format pytorch tensor.
+                its values are filled with 0.
+        - patch_size (sequence or int, required):
+                Desired size of pathces.
+                If a sequence of length 4 provided,
+                patches of size (w, h) = (
+                    patch_size[0][0] <= patch_size[0][1],
+                    patch_size[1][0] <= patch_size[1][1],
+                ) are generated.
+                All the patched pixel values are filled with 1.
+        - patch_region (sequence, optional):
+                A region where pathces are randomly generated.
+                patch_region[0] means the left corner (x, y) of the region,
+                and patch_region[1] mean the width and height (w, h) of it.
+                This is used as an input region of Local discriminator.
+                The default value is None.
+        - max_patches (int, optional):
+                It specifies how many patches are generated.
+                The default value is 1.
+    * returns:
+            Input mask tensor with generated pathces
+            where all the pixel values are filled with 1.
+    """
 
     mask = mask.clone()
     bsize, _, mask_h, mask_w = mask.shape
@@ -38,6 +64,20 @@ def add_random_patches(
 
 
 def gen_random_patch_region(mask_size, region_size):
+    """
+    * inputs:
+        - mask_size (sequence, required)
+                The size of an inputs mask tensor.
+        - region_size (sequence, required)
+                The size of a region where patches are generated.
+    * returns:
+            A random region of size (w, h) = (region_size[0], region_size[1])
+            where patches are generated.
+            returns[0] means the left corner (x, y) of the region,
+            and returns[1] mean the size (w, h) of the region.
+            This sequence is used as an input argument of add_random_patches function.
+            The region is randomly generated within the input mask.
+    """
     mask_w, mask_h = mask_size
     region_w, region_h = region_size
     offset_x = random.randint(0, mask_w - region_w)
