@@ -9,6 +9,8 @@ import torch
 import torchvision.transforms as transforms
 import os
 import argparse
+import numpy as np
+from PIL import Image
 
 
 parser = argparse.ArgumentParser()
@@ -23,9 +25,8 @@ parser.add_argument('--ptch_min_w', type=int, default=24)
 parser.add_argument('--ptch_max_w', type=int, default=72)
 parser.add_argument('--ptch_min_h', type=int, default=24)
 parser.add_argument('--ptch_max_h', type=int, default=72)
-parser.add_argument('--cn_in_h', type=int, default=218)
-parser.add_argument('--cn_in_w', type=int, default=178)
-parser.add_argument('--bsize', type=int, default=32)
+parser.add_argument('--cn_input_size', type=int, default=160)
+parser.add_argument('--bsize', type=int, default=16)
 parser.add_argument('--shuffle', default=True)
 
 def main(args):
@@ -36,18 +37,35 @@ def main(args):
     # Training Phase 1
     # ================================================
     trnsfm_1 = transforms.Compose([
-        transforms.Resize((args.cn_in_h, args.cn_in_w)),
+        transforms.Resize(args.cn_input_size),
+        transforms.RandomCrop((args.cn_input_size, args.cn_input_size)),
         transforms.ToTensor(),
     ])
 
+    # dataset
     train_dset_1 = ImageDataset(os.path.join(args.data_dir, 'train'), trnsfm_1)
     valid_dset_1 = ImageDataset(os.path.join(args.data_dir, 'valid'), trnsfm_1)
     train_loader_1 = DataLoader(train_dset_1, batch_size=args.bsize, shuffle=args.shuffle)
     valid_loader_1 = DataLoader(valid_dset_1, batch_size=args.bsize, shuffle=args.shuffle)
 
+    # compute the mean pixe; value of datasets
+    imgpaths = train_dset_1.imgpaths + valid_dset_1.imgpaths
+    pbar = tqdm(total=len(imgpaths), desc='computing the mean pixel value of datasets')
+    mpv = 0.
+    for imgpath in imgpaths:
+        img = Image(imgpath)
+        x = np.array(img, dtype=np.float32)
+        mpv += x.mean()
+        pbar.update()
+    pbar.close()
+    mpv /= len(imgpaths)
+    mpv /= 255. # normalize
+
+    # model & optimizer
     model_cn = CompletionNetwork()
     opt_cn = Adadelta(model_cn.parameters())
 
+    # training
     pbar = tqdm(total=args.Tc, desc='training phase 1')
     while pbar.n < args.Tc:
         for x in train_loader_1:
@@ -70,16 +88,17 @@ def main(args):
                 max_patches=args.max_patches,
             )
 
-            # merge x and mask
-            input = x - x * msk
-            y = model_cn(input)
-            loss = completion_network_loss(x, y, msk)
+            # merge x, mask, and mpv
+            input = x - x * msk + mpv * msk
+            output = model_cn(input)
+            loss = completion_network_loss(x, output, msk)
             loss.backward()
             opt_cn.step()
 
             pbar.update()
             if pbar.n >= args.Tc:
                 break
+    pbar.close()
 
     # ================================================
     # Training Phase 2
