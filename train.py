@@ -27,10 +27,19 @@ parser.add_argument('--ptch_max_h', type=int, default=72)
 parser.add_argument('--cn_input_size', type=int, default=160)
 parser.add_argument('--bsize', type=int, default=16)
 parser.add_argument('--shuffle', default=True)
+parser.add_argument('--no_cuda', action='store_true', default=False)
+parser.add_argument('--num_workers', type=int, default=1)
+parser.add_argument('--lr', type=float, default=1.0)
+parser.add_argument('--rho', type=float, default=0.9)
+parser.add_argument('--wd', type=float, default=0.0)
+
 
 def main(args):
 
     args.data_dir = os.path.expanduser(args.data_dir)
+    use_cuda = not args.no_cuda and torch.cuda.is_available()
+    device = torch.device('cuda' if use_cuda else 'cpu')
+    kwargs = {'num_workers': args.num_workers, 'pin_memory': True} if use_cuda else {}
 
     # ================================================
     # Training Phase 1
@@ -44,8 +53,8 @@ def main(args):
     # dataset
     train_dset_1 = ImageDataset(os.path.join(args.data_dir, 'train'), trnsfm_1)
     valid_dset_1 = ImageDataset(os.path.join(args.data_dir, 'valid'), trnsfm_1)
-    train_loader_1 = DataLoader(train_dset_1, batch_size=args.bsize, shuffle=args.shuffle)
-    valid_loader_1 = DataLoader(valid_dset_1, batch_size=args.bsize, shuffle=args.shuffle)
+    train_loader_1 = DataLoader(train_dset_1, batch_size=args.bsize, shuffle=args.shuffle, **kwargs)
+    valid_loader_1 = DataLoader(valid_dset_1, batch_size=args.bsize, shuffle=args.shuffle, **kwargs)
 
     # compute the mean pixe; value of datasets
     imgpaths = train_dset_1.imgpaths + valid_dset_1.imgpaths
@@ -61,14 +70,15 @@ def main(args):
     mpv /= 255. # normalize
 
     # model & optimizer
-    model_cn = CompletionNetwork()
-    opt_cn = Adadelta(model_cn.parameters())
+    model_cn = CompletionNetwork().to(device)
+    opt_cn = Adadelta(model_cn.parameters(), lr=args.lr, rho=args.rho, weight_decay=args.wd)
 
     # training
     pbar = tqdm(total=args.Tc, desc='phase 1')
     while pbar.n < args.Tc:
         for x in train_loader_1:
 
+            x.to(device)
             opt_cn.zero_grad()
 
             # generate patch region
@@ -88,7 +98,7 @@ def main(args):
             )
 
             # merge x, mask, and mpv
-            msg = 'phase1|'
+            msg = 'phase 1|'
             input = x - x * msk + mpv * msk
             output = model_cn(input)
             loss = completion_network_loss(x, output, msk)
