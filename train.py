@@ -5,6 +5,8 @@ from losses import completion_network_loss
 from utils import add_random_patches, gen_random_patch_region
 from torch.utils.data import DataLoader
 from torch.optim import Adadelta
+from itertools import cycle
+from torchvision.utils import save_image
 import torch
 import torchvision.transforms as transforms
 import os
@@ -15,9 +17,13 @@ from PIL import Image
 
 parser = argparse.ArgumentParser()
 parser.add_argument('data_dir')
+parser.add_argument('result_dir')
 parser.add_argument('--Tc', type=int, default=9000)
 parser.add_argument('--Td', type=int, default=1000)
 parser.add_argument('--Ttrain', type=int, default=50000)
+parser.add_argument('--snapshot_period_phase1', type=int, default=1000)
+parser.add_argument('--snapshot_period_phase2', type=int, default=100)
+parser.add_argument('--snapshot_period_phase3', type=int, default=1000)
 parser.add_argument('--max_patches', type=int, default=1)
 parser.add_argument('--ptch_reg_w', type=int, default=96)
 parser.add_argument('--ptch_reg_h', type=int, default=96)
@@ -38,6 +44,8 @@ parser.add_argument('--wd', type=float, default=0.0)
 def main(args):
 
     args.data_dir = os.path.expanduser(args.data_dir)
+    args.result_dir = os.path.expanduser(args.result_dir)
+
     use_cuda = not args.no_cuda and torch.cuda.is_available()
     device = torch.device('cuda' if use_cuda else 'cpu')
     kwargs = {'num_workers': args.num_workers, 'pin_memory': True} if use_cuda else {}
@@ -55,7 +63,7 @@ def main(args):
     train_dset_1 = ImageDataset(os.path.join(args.data_dir, 'train'), trnsfm_1)
     valid_dset_1 = ImageDataset(os.path.join(args.data_dir, 'valid'), trnsfm_1)
     train_loader_1 = DataLoader(train_dset_1, batch_size=args.bsize, shuffle=args.shuffle, **kwargs)
-    valid_loader_1 = DataLoader(valid_dset_1, batch_size=args.bsize, shuffle=args.shuffle, **kwargs)
+    valid_loader_1 = cycle(DataLoader(valid_dset_1, batch_size=args.bsize, **kwargs))
 
     # compute the mean pixe; value of datasets
     imgpaths = train_dset_1.imgpaths + valid_dset_1.imgpaths
@@ -113,6 +121,18 @@ def main(args):
             msg += ' train loss: %.5f' % loss.cpu()
             pbar.set_description(msg)
             pbar.update()
+
+            # test
+            if pbar.n % args.snapshot_period_phase1 == 0:
+                with torch.no_grad():
+                    x = next(valid_loader_1)
+                    x = x.to(device)
+                    input = x - x * msk + mpv * msk
+                    output = model_cn(input)
+                    imgs = torch.cat((input.cpu(), output.cpu()), dim=0)
+                    fname = os.path.join(args.result_dir, 'step%d.png' % pbar.n)
+                    save_image(imgs, fname, nrow=args.bsize)
+
             if pbar.n >= args.Tc:
                 break
     pbar.close()
