@@ -6,10 +6,10 @@ def add_random_patches(
     mask, patch_size,
     patch_region=None, max_patches=1):
 
-    bsize = mask.shape[0]
+    mask = mask.clone()
+    bsize, _, mask_h, mask_w = mask.shape
     masks = []
     for i in range(bsize):
-        _, mask_h, mask_w = mask.shape
         n_patches = random.choice(list(range(1, max_patches+1)))
         for j in range(n_patches):
             # choose patch width
@@ -26,16 +26,15 @@ def add_random_patches(
 
             # choose offset upper-left coordinate
             if patch_region:
-                pregion_xmin, pregion_ymin = patch_region[0]
-                pregion_w, pregion_h = patch_region[1]
-                offset_x = random.randint(pregion_xmin, pregion_w - patch_w)
-                offset_y = random.randint(pregion_ymin, pregion_h - patch_h)
+                preg_xmin, preg_ymin = patch_region[0]
+                preg_w, preg_h = patch_region[1]
+                offset_x = random.randint(preg_xmin, preg_xmin + preg_w - patch_w)
+                offset_y = random.randint(preg_ymin, preg_ymin + preg_h - patch_h)
             else:
                 offset_x = random.randint(0, mask_w - patch_w)
                 offset_y = random.randint(0, mask_h - patch_h)
-            mask[:, offset_y:offset_y + patch_h, offset_x:offset_x + patch_w] = 1.0
-        masks.append(mask.unsqueeze(dim=0))
-    return torch.cat(masks, dim=0)
+            mask[i, :, offset_y : offset_y + patch_h, offset_x : offset_x + patch_w] = 1.0
+    return mask
 
 
 def gen_random_patch_region(mask_size, region_size):

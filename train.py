@@ -61,9 +61,8 @@ def main(args):
             )
 
             # create mask
-            msk = torch.zeros_like(x)
             msk = add_random_patches(
-                msk,
+                torch.zeros_like(x),
                 patch_size=(
                     (args.ptch_min_w, args.ptch_max_w),
                     (args.ptch_min_h, args.ptch_max_h)),
