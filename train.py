@@ -53,7 +53,7 @@ def main(args):
     pbar = tqdm(total=len(imgpaths), desc='computing the mean pixel value of datasets')
     mpv = 0.
     for imgpath in imgpaths:
-        img = Image(imgpath)
+        img = Image.open(imgpath)
         x = np.array(img, dtype=np.float32)
         mpv += x.mean()
         pbar.update()
