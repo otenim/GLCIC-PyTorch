@@ -144,13 +144,10 @@ class GlobalDiscriminator(nn.Module):
         self.conv5 = nn.Conv2d(512, 512, kernel_size=5, stride=2, padding=2)
         self.bn5 = nn.BatchNorm2d(512)
         # input_shape: (None, 512, img_h//32, img_w//32)
-        self.conv6 = nn.Conv2d(512, 512, kernel_size=5, stride=2, padding=2)
-        self.bn6 = nn.BatchNorm2d(512)
-        # input_shape: (None, 512, img_h//64, img_w//64)
-        in_features = 512 * (self.img_h//64) * (self.img_w//64)
-        self.flatten7 = Flatten()
-        # input_shape: (None, 512 * img_h//64 * img_w//64)
-        self.linear7 = nn.Linear(in_features, 1024)
+        in_features = 512 * (self.img_h//32) * (self.img_w//32)
+        self.flatten6 = Flatten()
+        # input_shape: (None, 512 * img_h//32 * img_w//32)
+        self.linear6 = nn.Linear(in_features, 1024)
         # output_shape: (None, 1024)
 
     def forward(self, x):
@@ -159,8 +156,7 @@ class GlobalDiscriminator(nn.Module):
         x = F.relu(self.bn3(self.conv3(x)))
         x = F.relu(self.bn4(self.conv4(x)))
         x = F.relu(self.bn5(self.conv5(x)))
-        x = F.relu(self.bn6(self.conv6(x)))
-        x = F.relu(self.linear7(self.flatten7(x)))
+        x = F.relu(self.linear6(self.flatten6(x)))
         return x
 
 
