@@ -2,7 +2,7 @@ import torch
 import random
 
 def generate_random_mask(
-    mask_shape, patch_size=((24, 72), (24, 72)),
+    mask_shape, patch_size,
     patch_region=None, max_patches=1):
 
     bsize = mask_shape[0]
