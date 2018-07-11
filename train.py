@@ -50,6 +50,10 @@ def main(args):
     device = torch.device('cuda' if use_cuda else 'cpu')
     kwargs = {'num_workers': args.num_workers, 'pin_memory': True} if use_cuda else {}
 
+    # create result directory (if necessary)
+    if os.path.exists(args.result_dir) == False:
+        os.makedirs(args.result_dir)
+
     # ================================================
     # Training Phase 1
     # ================================================
