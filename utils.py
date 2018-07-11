@@ -1,6 +1,7 @@
 import torch
 import random
 
+
 def add_random_patches(
     mask, patch_size,
     patch_region=None, max_patches=1):
@@ -35,3 +36,11 @@ def add_random_patches(
             mask[:, offset_y:offset_y + patch_h, offset_x:offset_x + patch_w] = 1.0
         masks.append(mask.unsqueeze(dim=0))
     return torch.cat(masks, dim=0)
+
+
+def gen_random_patch_region(mask_size, region_size):
+    mask_w, mask_h = mask_size
+    region_w, region_h = region_size
+    offset_x = random.randint(0, mask_w - region_w)
+    offset_y = random.randint(0, mask_h - region_h)
+    return ((offset_x, offset_y), (region_w, region_h))
