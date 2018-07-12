@@ -2,7 +2,12 @@ from tqdm import tqdm
 from models import CompletionNetwork, ContextDiscriminator
 from datasets import ImageDataset
 from losses import completion_network_loss
-from utils import add_random_patches, gen_random_patch_region, crop_patch_region
+from utils import (
+    add_random_patches,
+    gen_random_patch_region,
+    crop_patch_region,
+    sample_random_batch,
+)
 from torch.utils.data import DataLoader
 from torch.optim import Adadelta
 from torch.nn import BCELoss
@@ -74,7 +79,6 @@ def main(args):
     train_dset = ImageDataset(os.path.join(args.data_dir, 'train'), trnsfm)
     valid_dset = ImageDataset(os.path.join(args.data_dir, 'valid'), trnsfm)
     train_loader = DataLoader(train_dset, batch_size=args.bsize, shuffle=args.shuffle)
-    valid_loader = DataLoader(valid_dset, batch_size=args.bsize)
 
     # compute the mean pixe; value of datasets
     imgpaths = train_dset.imgpaths + valid_dset.imgpaths
@@ -140,7 +144,7 @@ def main(args):
             if pbar.n % args.snaperiod_phase_1 == 0:
                 with torch.no_grad():
 
-                    x = next(valid_loader)
+                    x = sample_random_batch(valid_dset, batch_size=args.bsize)
                     x = x.to(device)
                     input = x - x * msk + mpv * msk
                     output = model_cn(input)
@@ -234,7 +238,7 @@ def main(args):
             if pbar.n % args.snaperiod_phase_2 == 0:
                 with torch.no_grad():
 
-                    x = next(valid_loader)
+                    x = sample_random_batch(valid_dset, batch_size=args.bsize)
                     x = x.to(device)
                     input = x - x * msk + mpv * msk
                     output = model_cn(input)
@@ -337,7 +341,7 @@ def main(args):
             if pbar.n % args.snaperiod_phase_3 == 0:
                 with torch.no_grad():
 
-                    x = next(valid_loader)
+                    x = sample_random_batch(valid_dset, batch_size=args.bsize)
                     x = x.to(device)
                     input = x - x * msk + mpv * msk
                     output = model_cn(input)
