@@ -149,6 +149,8 @@ def main(args):
                     imgs = torch.cat((input.cpu(), completed.cpu()), dim=0)
                     fname = os.path.join(args.result_dir, 'phase_1', 'step%d.png' % pbar.n)
                     save_image(imgs, fname, nrow=len(x))
+                    fname_model_cn = os.path.join(args.result_dir, 'phase_1', 'model_cn_step%d' % pbar.n)
+                    torch.save(model_cn.state_dict(), fname_model_cn)
 
             if pbar.n >= args.Tc:
                 break
@@ -240,6 +242,8 @@ def main(args):
                     imgs = torch.cat((input.cpu(), completed.cpu()), dim=0)
                     fname = os.path.join(args.result_dir, 'phase_2', 'step%d.png' % pbar.n)
                     save_image(imgs, fname, nrow=len(x))
+                    fname_model_cd = os.path.join(args.result_dir, 'phase_2', 'model_cd_step%d' % pbar.n)
+                    torch.save(model_cd.state_dict(), fname_model_cd)
 
             if pbar.n >= args.Td:
                 break
@@ -340,6 +344,10 @@ def main(args):
                     imgs = torch.cat((input.cpu(), completed.cpu()), dim=0)
                     fname = os.path.join(args.result_dir, 'phase_3', 'step%d.png' % pbar.n)
                     save_image(imgs, fname, nrow=len(x))
+                    fname_model_cn = os.path.join(args.result_dir, 'phase_3', 'model_cn_step%d' % pbar.n)
+                    fname_model_cd = os.path.join(args.result_dir, 'phase_3', 'model_cd_step%d' % pbar.n)
+                    torch.save(model_cn.state_dict(), fname_model_cn)
+                    torch.save(model_cd.state_dict(), fname_model_cd)
 
             if pbar.n >= n_steps:
                 break
