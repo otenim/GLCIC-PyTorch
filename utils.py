@@ -117,3 +117,20 @@ def sample_random_batch(dataset, batch_size=32):
         x = torch.unsqueeze(dataset[index], dim=0)
         batch.append(x)
     return torch.cat(batch, dim=0)
+
+
+def save_args(filepath, args):
+    """
+    * inputs:
+        - filepath (path, required)
+                A path to the file where 'args' is to be dumped.
+        - args (argparse.Namespace, required)
+                An output object of argparse.ArgumentParser().parse_args()
+    * returns:
+            A text file where the output object of argparse.ArgumentParser()
+            is dumpesd is created in the place specified with 'filepath'.
+    """
+    args_dict = vars(args)
+    with open(filepath, mode='w') as f:
+        for key in args_dict.keys():
+            f.write('%s: %s\n' % (key, args_dict[key]))
