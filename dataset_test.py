@@ -1,6 +1,7 @@
 from datasets import ImageDataset
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+from utils import sample_random_batch
 import torchvision.transforms as transforms
 
 transform = transforms.Compose([
