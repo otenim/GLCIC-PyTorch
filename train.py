@@ -35,10 +35,9 @@ parser.add_argument('--ptch_max_h', type=int, default=72)
 parser.add_argument('--cn_input_size', type=int, default=160)
 parser.add_argument('--gd_input_size', type=int, default=160)
 parser.add_argument('--ld_input_size', type=int, default=96)
-parser.add_argument('--bsize', type=int, default=32)
-parser.add_argument('--shuffle', default=False)
+parser.add_argument('--bsize', type=int, default=48)
+parser.add_argument('--shuffle', default=True)
 parser.add_argument('--no_cuda', action='store_true', default=False)
-parser.add_argument('--num_workers', type=int, default=1)
 parser.add_argument('--lr_cn', type=float, default=1.0)
 parser.add_argument('--rho_cn', type=float, default=0.9)
 parser.add_argument('--wd_cn', type=float, default=0.0)
@@ -58,7 +57,6 @@ def main(args):
 
     use_cuda = not args.no_cuda and torch.cuda.is_available()
     device = torch.device('cuda' if use_cuda else 'cpu')
-    kwargs = {'num_workers': args.num_workers, 'pin_memory': True} if use_cuda else {}
 
     # create result directory (if necessary)
     if os.path.exists(args.result_dir) == False:
@@ -75,8 +73,8 @@ def main(args):
     ])
     train_dset = ImageDataset(os.path.join(args.data_dir, 'train'), trnsfm)
     valid_dset = ImageDataset(os.path.join(args.data_dir, 'valid'), trnsfm)
-    train_loader = cycle(DataLoader(train_dset, batch_size=args.bsize, shuffle=args.shuffle, **kwargs))
-    valid_loader = cycle(DataLoader(valid_dset, batch_size=args.bsize, **kwargs))
+    train_loader = cycle(DataLoader(train_dset, batch_size=args.bsize, shuffle=args.shuffle))
+    valid_loader = cycle(DataLoader(valid_dset, batch_size=args.bsize))
 
     # compute the mean pixe; value of datasets
     imgpaths = train_dset.imgpaths + valid_dset.imgpaths
