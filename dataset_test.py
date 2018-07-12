@@ -16,9 +16,6 @@ print(train_dataset[0])
 print(train_dataset[0].shape)
 
 train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
-cnt = 5
-for batch in train_loader:
-    print(batch)
-    cnt -= 1
-    if cnt <= 0:
-        break
+
+for i, batch in enumerate(train_loader):
+    print(i)
