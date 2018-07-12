@@ -114,5 +114,6 @@ def sample_random_batch(dataset, batch_size=32):
     batch = []
     for i in range(min(batch_size, num_samples)):
         index = random.choice(range(0, num_samples))
-        batch.append(dataset[index])
+        x = torch.unsqueeze(dataset[index], dim=0)
+        batch.append(x)
     return torch.cat(batch, dim=0)
