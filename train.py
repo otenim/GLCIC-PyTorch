@@ -7,6 +7,7 @@ from utils import (
     gen_random_patch_region,
     crop_patch_region,
     sample_random_batch,
+    save_args,
 )
 from torch.utils.data import DataLoader
 from torch.optim import Adadelta
@@ -63,6 +64,9 @@ def main(args):
     use_cuda = not args.no_cuda and torch.cuda.is_available()
     device = torch.device('cuda' if use_cuda else 'cpu')
 
+    # dump input arguments
+    save_args(os.path.join(args.result_dir, 'config.txt'), args)
+
     # create result directory (if necessary)
     if os.path.exists(args.result_dir) == False:
         os.makedirs(args.result_dir)
@@ -82,7 +86,7 @@ def main(args):
 
     # compute the mean pixe; value of datasets
     imgpaths = train_dset.imgpaths + valid_dset.imgpaths
-    pbar = tqdm(total=len(imgpaths), desc='computing the mean pixel value of datasets')
+    pbar = tqdm(total=len(imgpaths), desc='computing the mean pixel value')
     mpv = 0.
     for imgpath in imgpaths:
         img = Image.open(imgpath)
