@@ -98,3 +98,21 @@ def crop_patch_region(x, patch_region):
     xmin, ymin = patch_region[0]
     w, h = patch_region[1]
     return x[:, :, ymin : ymin + h, xmin : xmin + w]
+
+
+def sample_random_batch(dataset, batch_size=32):
+    """
+    * inputs:
+        - dataset (torch.utils.data.Dataset, required)
+                An instance of torch.utils.data.Dataset.
+        - batch_size (int, optional)
+                Batch size.
+    * returns:
+            A mini-batch randomly sampled from the input dataset.
+    """
+    num_samples = len(dataset)
+    batch = []
+    for i in range(min(batch_size, num_samples)):
+        index = random.choice(range(0, num_samples))
+        batch.append(dataset[index])
+    return torch.cat(batch, dim=0)
