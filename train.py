@@ -140,8 +140,7 @@ def main(args):
             if pbar.n % args.snaperiod_phase_1 == 0:
                 with torch.no_grad():
 
-                    choice = random.choice(range(0, len(valid_loader)))
-                    x = valid_loader[choice]
+                    x = next(valid_loader)
                     x = x.to(device)
                     input = x - x * msk + mpv * msk
                     output = model_cn(input)
@@ -235,8 +234,7 @@ def main(args):
             if pbar.n % args.snaperiod_phase_2 == 0:
                 with torch.no_grad():
 
-                    choice = random.choice(range(0, len(valid_loader)))
-                    x = valid_loader[choice]
+                    x = next(valid_loader)
                     x = x.to(device)
                     input = x - x * msk + mpv * msk
                     output = model_cn(input)
@@ -339,8 +337,7 @@ def main(args):
             if pbar.n % args.snaperiod_phase_3 == 0:
                 with torch.no_grad():
 
-                    choice = random.choice(range(0, len(valid_loader)))
-                    x = valid_loader[choice]
+                    x = next(valid_loader)
                     x = x.to(device)
                     input = x - x * msk + mpv * msk
                     output = model_cn(input)
