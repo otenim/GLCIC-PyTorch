@@ -251,7 +251,7 @@ def main(args):
     # ================================================
     # training
     n_steps = args.Ttrain - (args.Tc + args.Td)
-    alpha = torch.tensor(args.alpha).to_device(device)
+    alpha = torch.tensor(args.alpha).to(device)
     pbar = tqdm(total=n_steps)
     while pbar.n < n_steps:
         for x in train_loader:
