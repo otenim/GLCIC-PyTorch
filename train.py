@@ -45,6 +45,7 @@ parser.add_argument('--wd_cn', type=float, default=0.0)
 parser.add_argument('--lr_cd', type=float, default=1.0)
 parser.add_argument('--rho_cd', type=float, default=0.9)
 parser.add_argument('--wd_cd', type=float, default=0.0)
+parser.add_argument('--alpha', type=float, default=4e-4)
 
 
 def main(args):
@@ -89,7 +90,7 @@ def main(args):
     pbar.close()
     mpv /= len(imgpaths)
     mpv /= 255. # normalize
-    mpv = torch.tensor(mpv)
+    mpv = torch.tensor(mpv).to(device)
 
 
     # ================================================
@@ -127,7 +128,6 @@ def main(args):
             msg = 'phase 1 |'
             x = x.to(device)
             msk = msk.to(device)
-            mpv = mpv.to(device)
             input = x - x * msk + mpv * msk
             output = model_cn(input)
             loss = completion_network_loss(x, output, msk)
@@ -148,7 +148,7 @@ def main(args):
                     completed = x - x * msk + output * msk
                     imgs = torch.cat((input.cpu(), completed.cpu()), dim=0)
                     fname = os.path.join(args.result_dir, 'phase_1', 'step%d.png' % pbar.n)
-                    save_image(imgs, fname, nrow=args.bsize)
+                    save_image(imgs, fname, nrow=len(x))
 
             if pbar.n >= args.Tc:
                 break
@@ -174,7 +174,6 @@ def main(args):
 
             opt_cd.zero_grad()
             x = x.to(device)
-            mpv = mpv.to(device)
 
             # ================================================
             # fake
@@ -240,7 +239,7 @@ def main(args):
                     completed = x - x * msk + output * msk
                     imgs = torch.cat((input.cpu(), completed.cpu()), dim=0)
                     fname = os.path.join(args.result_dir, 'phase_2', 'step%d.png' % pbar.n)
-                    save_image(imgs, fname, nrow=args.bsize)
+                    save_image(imgs, fname, nrow=len(x))
 
             if pbar.n >= args.Td:
                 break
@@ -250,6 +249,101 @@ def main(args):
     # ================================================
     # Training Phase 3
     # ================================================
+    # training
+    n_steps = args.Ttrain - (args.Tc + args.Td)
+    alpha = torch.tensor(args.alpha).to_device(device)
+    pbar = tqdm(total=n_steps)
+    while pbar.n < n_steps:
+        for x in train_loader:
+
+            x = x.to(device)
+
+            # ================================================
+            # train model_cd
+            # ================================================
+            opt_cd.zero_grad()
+
+            # fake
+            ptch_reg = gen_random_patch_region(
+                mask_size=(x.shape[3], x.shape[2]),
+                region_size=(args.ptch_reg_w, args.ptch_reg_h),
+            )
+
+            msk = add_random_patches(
+                torch.zeros_like(x),
+                patch_size=(
+                    (args.ptch_min_w, args.ptch_max_w),
+                    (args.ptch_min_h, args.ptch_max_h)),
+                patch_region=ptch_reg,
+                max_patches=args.max_patches,
+            )
+
+            fake = torch.zeros((len(x), 1)).to(device)
+            msk = msk.to(device)
+            input_cn = x - x * msk + mpv * msk
+            output_cn = model_cn(input_cn)
+            input_gd_fake = output_cn.detach()
+            input_ld_fake = crop_patch_region(input_gd_fake, ptch_reg)
+            input_fake = (input_ld_fake, input_gd_fake)
+            output_fake = model_cd(input_fake)
+            loss_cd_1 = criterion_cd(output_fake, fake)
+
+            # real
+            ptch_reg = gen_random_patch_region(
+                mask_size=(x.shape[3], x.shape[2]),
+                region_size=(args.ptch_reg_w, args.ptch_reg_h),
+            )
+
+            real = torch.ones((len(x), 1)).to(device)
+            input_gd_real = x
+            input_ld_real = crop_patch_region(input_gd_real, ptch_reg)
+            input_real = (input_ld_real, input_gd_real)
+            output_real = model_cd(input_real)
+            loss_cd_2 = criterion_cd(output_real, real)
+
+            # optimize
+            loss_cd = (loss_cd_1 + loss_cd_2) * alpha / 2.
+            loss_cd.backward()
+            opt_cd.step()
+
+            # ================================================
+            # train model_cn
+            # ================================================
+            opt_cn.zero_grad()
+
+            loss_cn_1 = completion_network_loss(x, output_cn, msk)
+            input_gd_fake = output_cn
+            input_ld_fake = crop_patch_region(input_gd_fake, ptch_reg)
+            input_fake = (input_ld_fake, input_gd_fake)
+            output_fake = model_cd(input_fake)
+            loss_cn_2 = criterion_cd(output_fake, real)
+
+            # optimize
+            loss_cn = (loss_cn_1 + alpha * loss_cn_2) / 2.
+            loss_cn.backward()
+            opt_cn.step()
+
+            msg = 'phase 3 |'
+            msg += ' train loss (cd): %.5f' % loss_cd.cpu()
+            msg += ' train loss (cn): %.5f' % loss_cn.cpu()
+            pbar.set_description(msg)
+            pbar.update()
+
+            # test
+            if pbar.n % args.snaperiod_phase_3 == 0:
+                with torch.no_grad():
+                    x = next(valid_loader)
+                    x = x.to(device)
+                    input = x - x * msk + mpv * msk
+                    output = model_cn(input)
+                    completed = x - x * msk + output * msk
+                    imgs = torch.cat((input.cpu(), completed.cpu()), dim=0)
+                    fname = os.path.join(args.result_dir, 'phase_3', 'step%d.png' % pbar.n)
+                    save_image(imgs, fname, nrow=len(x))
+
+            if pbar.n >= n_steps:
+                break
+    pbar.close()
 
 
 if __name__ == '__main__':
