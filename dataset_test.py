@@ -1,5 +1,6 @@
 from datasets import ImageDataset
 from torch.utils.data import DataLoader
+from tqdm import tqdm
 import torchvision.transforms as transforms
 
 transform = transforms.Compose([
@@ -12,10 +13,10 @@ valid_dataset = ImageDataset('./datasets/img_align_celeba/valid', transform=tran
 
 print('Training samples: %d' % len(train_dataset))
 print('Validation samples: %d' % len(valid_dataset))
-print(train_dataset[0])
-print(train_dataset[0].shape)
 
-train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
+train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True)
 
-for i, batch in enumerate(train_loader):
-    print(i)
+pbar = tqdm(total=len(train_loader))
+for batch in enumerate(train_loader):
+    pbar.update()
+pbar.close()
