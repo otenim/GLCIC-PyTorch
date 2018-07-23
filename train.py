@@ -13,13 +13,14 @@ from torch.utils.data import DataLoader
 from torch.optim import Adadelta
 from torch.nn import BCELoss
 from torchvision.utils import save_image
+from PIL import Image
 import torchvision.transforms as transforms
 import torch
 import random
 import os
 import argparse
 import numpy as np
-from PIL import Image
+import json
 
 
 parser = argparse.ArgumentParser()
@@ -43,8 +44,7 @@ parser.add_argument('--gd_input_size', type=int, default=160)
 parser.add_argument('--ld_input_size', type=int, default=96)
 parser.add_argument('--bsize', type=int, default=16)
 parser.add_argument('--shuffle', default=True)
-parser.add_argument('--no_cuda', action='store_true', default=False)
-parser.add_argument('--gpu_id', type=int, default=0)
+parser.add_argument('--no_cuda', default=False)
 parser.add_argument('--lr_cn', type=float, default=1.0)
 parser.add_argument('--rho_cn', type=float, default=0.9)
 parser.add_argument('--wd_cn', type=float, default=0.0)
@@ -52,6 +52,7 @@ parser.add_argument('--lr_cd', type=float, default=1.0)
 parser.add_argument('--rho_cd', type=float, default=0.9)
 parser.add_argument('--wd_cd', type=float, default=0.0)
 parser.add_argument('--alpha', type=float, default=4e-4)
+parser.add_argument('--comp_mpv', default=True)
 
 
 def main(args):
@@ -63,10 +64,7 @@ def main(args):
     args.result_dir = os.path.expanduser(args.result_dir)
 
     use_cuda = not args.no_cuda and torch.cuda.is_available()
-    device = torch.device('cuda:%d' % args.gpu_id if use_cuda else 'cpu')
-
-    # dump input arguments
-    save_args(os.path.join(args.result_dir, 'config.txt'), args)
+    device = torch.device('cuda' if use_cuda else 'cpu')
 
     # create result directory (if necessary)
     if os.path.exists(args.result_dir) == False:
@@ -85,19 +83,26 @@ def main(args):
     valid_dset = ImageDataset(os.path.join(args.data_dir, 'valid'), trnsfm)
     train_loader = DataLoader(train_dset, batch_size=args.bsize, shuffle=args.shuffle)
 
-    # compute the mean pixe; value of datasets
-    imgpaths = train_dset.imgpaths + valid_dset.imgpaths
-    pbar = tqdm(total=len(imgpaths), desc='computing the mean pixel value')
-    mpv = 0.
-    for imgpath in imgpaths:
-        img = Image.open(imgpath)
-        x = np.array(img, dtype=np.float32)
-        mpv += x.mean()
-        pbar.update()
-    pbar.close()
-    mpv /= len(imgpaths)
-    mpv /= 255. # normalize
-    mpv = torch.tensor(mpv).to(device)
+    # compute the mean pixel value of datasets
+    mean_pv = 0.
+    if args.comp_mpv:
+        imgpaths = train_dset.imgpaths + valid_dset.imgpaths
+        pbar = tqdm(total=len(imgpaths), desc='computing the mean pixel value')
+        for imgpath in imgpaths:
+            img = Image.open(imgpath)
+            x = np.array(img, dtype=np.float32)
+            mean_pv += x.mean()
+            pbar.update()
+        pbar.close()
+        mean_pv /= len(imgpaths)
+        mean_pv /= 255. # normalize
+    mpv = torch.tensor(mean_pv).to(device)
+
+    # save training config
+    args_dict = vars(args)
+    args_dict['mean_pv'] = mean_pv
+    with open(os.path.join(args.result_dir, 'config.txt'), mode='w') as f:
+        json.dump(args_dict, f)
 
 
     # ================================================
