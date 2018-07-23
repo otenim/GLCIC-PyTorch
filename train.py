@@ -7,7 +7,6 @@ from utils import (
     gen_random_patch_region,
     crop_patch_region,
     sample_random_batch,
-    save_args,
 )
 from torch.utils.data import DataLoader
 from torch.optim import Adadelta
@@ -101,7 +100,7 @@ def main(args):
     # save training config
     args_dict = vars(args)
     args_dict['mean_pv'] = mean_pv
-    with open(os.path.join(args.result_dir, 'config.txt'), mode='w') as f:
+    with open(os.path.join(args.result_dir, 'config.json'), mode='w') as f:
         json.dump(args_dict, f)
 
 
