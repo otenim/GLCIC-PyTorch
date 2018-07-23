@@ -78,6 +78,7 @@ def main(args):
         transforms.RandomCrop((args.cn_input_size, args.cn_input_size)),
         transforms.ToTensor(),
     ])
+    print('loading dataset...')
     train_dset = ImageDataset(os.path.join(args.data_dir, 'train'), trnsfm)
     valid_dset = ImageDataset(os.path.join(args.data_dir, 'valid'), trnsfm)
     train_loader = DataLoader(train_dset, batch_size=args.bsize, shuffle=args.shuffle)
