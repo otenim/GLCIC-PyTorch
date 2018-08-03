@@ -1,2 +1,3 @@
 test/
 test_*/
+*.tar.gz
