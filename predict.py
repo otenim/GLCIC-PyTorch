@@ -16,6 +16,7 @@ parser.add_argument('config')
 parser.add_argument('input_img')
 parser.add_argument('output_img')
 parser.add_argument('--max_patches', type=int, default=5)
+parser.add_argument('--img_size', type=int, default=160)
 parser.add_argument('--ptch_min_w', type=int, default=8)
 parser.add_argument('--ptch_max_w', type=int, default=48)
 parser.add_argument('--ptch_min_h', type=int, default=8)
@@ -39,7 +40,7 @@ def main(args):
     comp_mpv = config['comp_mpv']
 
     model = CompletionNetwork()
-    model.load_state_dict(args.model)
+    model.load_state_dict(torch.load(args.model, map_location='cpu'))
 
 
     # =============================================
@@ -47,6 +48,8 @@ def main(args):
     # =============================================
     # convert img to tensor
     img = Image.open(args.input_img)
+    img = transforms.Resize(args.img_size)(img)
+    img = transforms.RandomCrop((args.img_size, args.img_size))(img)
     x = transforms.ToTensor()(img)
     x = torch.unsqueeze(x, dim=0)
 
