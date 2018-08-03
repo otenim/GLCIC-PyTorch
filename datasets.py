@@ -22,14 +22,14 @@ class ImageDataset(data.Dataset):
             img = self.transform(img)
         return img
 
-    def __is_imgfile(filepath):
+    def __is_imgfile(self, filepath):
         filepath = os.path.expanduser(filepath)
         if os.path.isfile(filepath) and imghdr.what(filepath):
             return True
         else:
             return False
 
-    def __load_imgpaths_from_dir(dirpath, walk=False, allowed_formats=None):
+    def __load_imgpaths_from_dir(self, dirpath, walk=False, allowed_formats=None):
         imgpaths = []
         dirpath = os.path.expanduser(dirpath)
         if walk:
