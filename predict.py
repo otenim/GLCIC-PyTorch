@@ -60,6 +60,7 @@ def main(args):
             (args.ptch_min_w, args.ptch_max_w),
             (args.ptch_min_h, args.ptch_max_h),
         ),
+        max_patches=args.max_patches,
     )
 
     # inpaint
