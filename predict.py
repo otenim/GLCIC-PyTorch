@@ -15,12 +15,12 @@ parser.add_argument('model')
 parser.add_argument('config')
 parser.add_argument('input_img')
 parser.add_argument('output_img')
-parser.add_argument('--max_patches', type=int, default=4)
+parser.add_argument('--max_patches', type=int, default=3)
 parser.add_argument('--img_size', type=int, default=160)
 parser.add_argument('--ptch_min_w', type=int, default=8)
-parser.add_argument('--ptch_max_w', type=int, default=48)
+parser.add_argument('--ptch_max_w', type=int, default=96)
 parser.add_argument('--ptch_min_h', type=int, default=8)
-parser.add_argument('--ptch_max_h', type=int, default=48)
+parser.add_argument('--ptch_max_h', type=int, default=96)
 
 
 def main(args):
