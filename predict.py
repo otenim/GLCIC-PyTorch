@@ -7,7 +7,7 @@ import torchvision.transforms as transforms
 from torchvision.utils import save_image
 from models import CompletionNetwork
 from PIL import Image
-from utils import add_random_patches
+from utils import add_random_patches, poisson_blend
 
 
 parser = argparse.ArgumentParser()
@@ -15,7 +15,7 @@ parser.add_argument('model')
 parser.add_argument('config')
 parser.add_argument('input_img')
 parser.add_argument('output_img')
-parser.add_argument('--max_patches', type=int, default=5)
+parser.add_argument('--max_patches', type=int, default=4)
 parser.add_argument('--img_size', type=int, default=160)
 parser.add_argument('--ptch_min_w', type=int, default=8)
 parser.add_argument('--ptch_max_w', type=int, default=48)
@@ -67,7 +67,7 @@ def main(args):
     with torch.no_grad():
         input = x - x * msk + mpv * msk
         output = model(input)
-        inpainted = x - x * msk + output * msk
+        inpainted = poisson_blend(input, output, msk)
         imgs = torch.cat((x, input, inpainted), dim=-1)
         imgs = save_image(imgs, args.output_img, nrow=3)
     print('output img was saved as %s.' % args.output_img)

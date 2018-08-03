@@ -1,6 +1,7 @@
 import torch
 import random
 import torchvision.transforms as transforms
+import numpy as np
 from poissonblending import blend
 
 def add_random_patches(
@@ -134,12 +135,17 @@ def poisson_blend(input, output, mask):
     """
     num_samples = input.shape[0]
     ret = []
+
+    # convert torch array to numpy array followed by
+    # converting 'channel first' format to 'channel last' format.
+    input_np = np.transpose(np.copy(input.numpy()), axes=(0, 2, 3, 1))
+    output_np = np.transpose(np.copy(output.numpy()), axes=(0, 2, 3, 1))
+    mask_np = np.transpose(np.copy(mask.numpy()), axes=(0, 2, 3, 1))
+
+    # apply poisson image editing method for each input/output image and mask.
     for i in range(num_samples):
-        img_dst = transforms.ToPILImage(input[i])
-        img_src = transforms.ToPILImage(output[i])
-        img_msk = transforms.ToPILImage(mask[i])
-        img_inpainted = blend(img_dst, img_src, img_msk)
-        inpainted = transforms.ToTensor(img_inpainted)
+        inpainted_np = blend(input_np[i], output_np[i], mask_np[i])
+        inpainted = torch.from_numpy(np.transpose(inpainted_np, axes=(2, 0, 1)))
         inpainted = torch.unsqueeze(inpainted, dim=0)
         ret.append(inpainted)
     ret = torch.cat(ret, dim=0)
