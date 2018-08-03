@@ -1,13 +1,14 @@
 import torch
 import random
-
+import torchvision.transforms as transforms
+from poissonblending import blend
 
 def add_random_patches(
     mask, patch_size,
     patch_region=None, max_patches=1):
     """
     * inputs:
-        - mask (pytorch tensor, required):
+        - mask (torch.Tensor, required):
                 A (samples, c, h, w) format pytorch tensor.
                 its values are filled with 0.
         - patch_size (sequence or int, required):
@@ -88,7 +89,7 @@ def gen_random_patch_region(mask_size, region_size):
 def crop_patch_region(x, patch_region):
     """
     * inputs:
-        - x (Tensor, required)
+        - x (torch.Tensor, required)
                 A pytorch 4D tensor (samples, c, h, w).
         - patch_region (sequence, required)
                 A patch region ((x_min, y_min), (w, h)).
@@ -117,3 +118,29 @@ def sample_random_batch(dataset, batch_size=32):
         x = torch.unsqueeze(dataset[index], dim=0)
         batch.append(x)
     return torch.cat(batch, dim=0)
+
+
+def poisson_blend(input, output, mask):
+    """
+    * inputs:
+        - input (torch.Tensor, required)
+                Input tensor of Completion Network.
+        - output (torch.Tensor, required)
+                Output tensor of Completion Network.
+        - mask
+                Mask tensor for the input tensor.
+    * returns:
+                Image tensor inpainted using poisson image editing method.
+    """
+    num_samples = input.shape[0]
+    ret = []
+    for i in range(num_samples):
+        img_dst = transforms.ToPILImage(input[i])
+        img_src = transforms.ToPILImage(output[i])
+        img_msk = transforms.ToPILImage(mask[i])
+        img_inpainted = blend(img_dst, img_src, img_msk)
+        inpainted = transforms.ToTensor(img_inpainted)
+        inpainted = torch.unsqueeze(inpainted, dim=0)
+        ret.append(inpainted)
+    ret = torch.cat(ret, dim=0)
+    return ret
