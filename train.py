@@ -7,6 +7,7 @@ from utils import (
     gen_random_patch_region,
     crop_patch_region,
     sample_random_batch,
+    poisson_blend,
 )
 from torch.utils.data import DataLoader
 from torch.optim import Adadelta
@@ -28,20 +29,20 @@ parser.add_argument('result_dir')
 parser.add_argument('--Tc', type=int, default=90000)
 parser.add_argument('--Td', type=int, default=10000)
 parser.add_argument('--Ttrain', type=int, default=500000)
-parser.add_argument('--snaperiod_phase_1', type=int, default=10000)
-parser.add_argument('--snaperiod_phase_2', type=int, default=10000)
-parser.add_argument('--snaperiod_phase_3', type=int, default=10000)
-parser.add_argument('--max_patches', type=int, default=5)
+parser.add_argument('--snaperiod_1', type=int, default=18000)
+parser.add_argument('--snaperiod_2', type=int, default=2000)
+parser.add_argument('--snaperiod_3', type=int, default=80000)
+parser.add_argument('--max_patches', type=int, default=1)
 parser.add_argument('--ptch_reg_w', type=int, default=96)
 parser.add_argument('--ptch_reg_h', type=int, default=96)
-parser.add_argument('--ptch_min_w', type=int, default=8)
-parser.add_argument('--ptch_max_w', type=int, default=48)
-parser.add_argument('--ptch_min_h', type=int, default=8)
-parser.add_argument('--ptch_max_h', type=int, default=48)
+parser.add_argument('--ptch_min_w', type=int, default=48)
+parser.add_argument('--ptch_max_w', type=int, default=96)
+parser.add_argument('--ptch_min_h', type=int, default=48)
+parser.add_argument('--ptch_max_h', type=int, default=96)
 parser.add_argument('--cn_input_size', type=int, default=160)
 parser.add_argument('--gd_input_size', type=int, default=160)
 parser.add_argument('--ld_input_size', type=int, default=96)
-parser.add_argument('--bsize', type=int, default=24)
+parser.add_argument('--bsize', type=int, default=16)
 parser.add_argument('--shuffle', default=True)
 parser.add_argument('--no_cuda', default=False)
 parser.add_argument('--lr_cn', type=float, default=1.0)
@@ -151,19 +152,17 @@ def main(args):
             pbar.update()
 
             # test
-            if pbar.n % args.snaperiod_phase_1 == 0:
+            if pbar.n % args.snaperiod_1 == 0:
                 with torch.no_grad():
 
                     x = sample_random_batch(valid_dset, batch_size=args.bsize)
                     x = x.to(device)
                     input = x - x * msk + mpv * msk
                     output = model_cn(input)
-                    completed = x - x * msk + output * msk
+                    completed = poisson_blend(input, output, msk)
                     imgs = torch.cat((input.cpu(), completed.cpu()), dim=0)
-                    fname = os.path.join(args.result_dir, 'phase_1', 'step%d.png' % pbar.n)
-                    save_image(imgs, fname, nrow=len(x))
-                    fname_model_cn = os.path.join(args.result_dir, 'phase_1', 'model_cn_step%d' % pbar.n)
-                    torch.save(model_cn.state_dict(), fname_model_cn)
+                    save_image(imgs, os.path.join(args.result_dir, 'phase_1', 'step%d.png' % pbar.n), nrow=len(x))
+                    torch.save(model_cn.state_dict(), os.path.join(args.result_dir, 'phase_1', 'model_cn_step%d' % pbar.n))
 
             if pbar.n >= args.Tc:
                 break
@@ -245,19 +244,17 @@ def main(args):
             pbar.update()
 
             # test
-            if pbar.n % args.snaperiod_phase_2 == 0:
+            if pbar.n % args.snaperiod_2 == 0:
                 with torch.no_grad():
 
                     x = sample_random_batch(valid_dset, batch_size=args.bsize)
                     x = x.to(device)
                     input = x - x * msk + mpv * msk
                     output = model_cn(input)
-                    completed = x - x * msk + output * msk
+                    completed = poisson_blend(input, output, msk)
                     imgs = torch.cat((input.cpu(), completed.cpu()), dim=0)
-                    fname = os.path.join(args.result_dir, 'phase_2', 'step%d.png' % pbar.n)
-                    save_image(imgs, fname, nrow=len(x))
-                    fname_model_cd = os.path.join(args.result_dir, 'phase_2', 'model_cd_step%d' % pbar.n)
-                    torch.save(model_cd.state_dict(), fname_model_cd)
+                    save_image(imgs, os.path.join(args.result_dir, 'phase_2', 'step%d.png' % pbar.n), nrow=len(x))
+                    torch.save(model_cd.state_dict(), os.path.join(args.result_dir, 'phase_2', 'model_cd_step%d' % pbar.n))
 
             if pbar.n >= args.Td:
                 break
@@ -348,21 +345,18 @@ def main(args):
             pbar.update()
 
             # test
-            if pbar.n % args.snaperiod_phase_3 == 0:
+            if pbar.n % args.snaperiod_3 == 0:
                 with torch.no_grad():
 
                     x = sample_random_batch(valid_dset, batch_size=args.bsize)
                     x = x.to(device)
                     input = x - x * msk + mpv * msk
                     output = model_cn(input)
-                    completed = x - x * msk + output * msk
+                    completed = poisson_blend(input, output, msk)
                     imgs = torch.cat((input.cpu(), completed.cpu()), dim=0)
-                    fname = os.path.join(args.result_dir, 'phase_3', 'step%d.png' % pbar.n)
-                    save_image(imgs, fname, nrow=len(x))
-                    fname_model_cn = os.path.join(args.result_dir, 'phase_3', 'model_cn_step%d' % pbar.n)
-                    fname_model_cd = os.path.join(args.result_dir, 'phase_3', 'model_cd_step%d' % pbar.n)
-                    torch.save(model_cn.state_dict(), fname_model_cn)
-                    torch.save(model_cd.state_dict(), fname_model_cd)
+                    save_image(imgs, os.path.join(args.result_dir, 'phase_3', 'step%d.png' % pbar.n), nrow=len(x))
+                    torch.save(model_cn.state_dict(), os.path.join(args.result_dir, 'phase_3', 'model_cn_step%d' % pbar.n))
+                    torch.save(model_cd.state_dict(), os.path.join(args.result_dir, 'phase_3', 'model_cd_step%d' % pbar.n))
 
             if pbar.n >= n_steps:
                 break
