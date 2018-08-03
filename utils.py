@@ -138,9 +138,9 @@ def poisson_blend(input, output, mask):
 
     # convert torch array to numpy array followed by
     # converting 'channel first' format to 'channel last' format.
-    input_np = np.transpose(np.copy(input.numpy()), axes=(0, 2, 3, 1))
-    output_np = np.transpose(np.copy(output.numpy()), axes=(0, 2, 3, 1))
-    mask_np = np.transpose(np.copy(mask.numpy()), axes=(0, 2, 3, 1))
+    input_np = np.transpose(np.copy(input.cpu().numpy()), axes=(0, 2, 3, 1))
+    output_np = np.transpose(np.copy(output.cpu().numpy()), axes=(0, 2, 3, 1))
+    mask_np = np.transpose(np.copy(mask.cpu().numpy()), axes=(0, 2, 3, 1))
 
     # apply poisson image editing method for each input/output image and mask.
     for i in range(num_samples):
