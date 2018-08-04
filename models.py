@@ -184,7 +184,7 @@ class GlobalDiscriminator(nn.Module):
         x = self.bn2(self.act2(self.conv2(x)))
         x = self.bn3(self.act3(self.conv3(x)))
         x = self.bn4(self.act4(self.conv4(x)))
-        x = self.bn5(self.act5(self.conv5F.relu(x)))
+        x = self.bn5(self.act5(self.conv5(x)))
         x = self.act6(self.linear6(self.flatten6(x)))
         return x
 
