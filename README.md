@@ -24,8 +24,6 @@ We tested our scripts in the following environment.
 If you would like to run our training script, we recommend you to
 use a more than middle-range GPU such as GTX 1070 or GTX 1080(Ti).
 
-All the above dependent libraries can be installed with pip command.
-
 ## DEMO (Inference)
 
 ### 1. Download our pretrained model and the training config file.
