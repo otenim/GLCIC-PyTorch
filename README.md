@@ -20,8 +20,8 @@ The pretrained model was trained with CelebA dataset.
 The hyper parameters and the model architecture is exactly the same
 as what described in the paper.
 
-The training config file saves the training settings in json format.  
-This file is required to make the model predict in the same environment as training time.
+Training config file saves training settings in json format.  
+This file is required to make models predict in the same environment as training time.
 
 ### 2. Inference on a image
 
