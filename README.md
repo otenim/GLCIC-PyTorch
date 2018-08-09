@@ -16,12 +16,12 @@ Here, we provide a high-quality pytorch implementation of [GLCIC](http://hi.cs.w
 Pretrained model: [download](https://home.com)  
 Training config file: [download](https://hoge.com)  
 
-The pretrained model was trained with CelebA dataset.
+The pretrained model was trained with CelebA dataset.  
 The hyper parameters and the model architecture is exactly the same
 as what described in the paper.
 
-The training config file saves the training settings in json format, and
-this file is required to make the model predict in the same environment as training time.
+The training config file saves the training settings in json format.  
+This file is required to make the model predict in the same environment as training time.
 
 ### 2. Inference on a image
 
