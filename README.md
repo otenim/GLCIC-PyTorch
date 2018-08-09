@@ -23,6 +23,6 @@ as what described in the paper.
 Training config file saves training settings in json format.  
 This file is required to make models predict in the same environment as training time.
 
-### 2. Inference on a image
+### 2. Inference
 
 ## DEMO (Training)
