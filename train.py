@@ -81,13 +81,13 @@ def main(args):
     ])
     print('loading dataset...')
     train_dset = ImageDataset(os.path.join(args.data_dir, 'train'), trnsfm)
-    valid_dset = ImageDataset(os.path.join(args.data_dir, 'valid'), trnsfm)
+    test_dset = ImageDataset(os.path.join(args.data_dir, 'test'), trnsfm)
     train_loader = DataLoader(train_dset, batch_size=args.bsize, shuffle=args.shuffle)
 
     # compute the mean pixel value of datasets
     mean_pv = 0.
     if args.comp_mpv:
-        imgpaths = train_dset.imgpaths + valid_dset.imgpaths
+        imgpaths = train_dset.imgpaths + test_dset.imgpaths
         pbar = tqdm(total=len(imgpaths), desc='computing the mean pixel value')
         for imgpath in imgpaths:
             img = Image.open(imgpath)
@@ -155,7 +155,7 @@ def main(args):
             if pbar.n % args.snaperiod_1 == 0:
                 with torch.no_grad():
 
-                    x = sample_random_batch(valid_dset, batch_size=args.bsize)
+                    x = sample_random_batch(test_dset, batch_size=args.bsize)
                     x = x.to(device)
                     input = x - x * msk + mpv * msk
                     output = model_cn(input)
@@ -247,7 +247,7 @@ def main(args):
             if pbar.n % args.snaperiod_2 == 0:
                 with torch.no_grad():
 
-                    x = sample_random_batch(valid_dset, batch_size=args.bsize)
+                    x = sample_random_batch(test_dset, batch_size=args.bsize)
                     x = x.to(device)
                     input = x - x * msk + mpv * msk
                     output = model_cn(input)
@@ -348,7 +348,7 @@ def main(args):
             if pbar.n % args.snaperiod_3 == 0:
                 with torch.no_grad():
 
-                    x = sample_random_batch(valid_dset, batch_size=args.bsize)
+                    x = sample_random_batch(test_dset, batch_size=args.bsize)
                     x = x.to(device)
                     input = x - x * msk + mpv * msk
                     output = model_cn(input)
