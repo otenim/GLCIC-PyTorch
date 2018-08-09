@@ -3,34 +3,21 @@
 
 ## About this repository
 
-Here, we provide a pytorch implementation of [GLCIC](http://hi.cs.waseda.ac.jp/~iizuka/projects/completion/data/completion_sig2017.pdf) introduced by Iizuka et. al.
+Here, we provide a high-quality pytorch implementation of [GLCIC](http://hi.cs.waseda.ac.jp/~iizuka/projects/completion/data/completion_sig2017.pdf) introduced by Iizuka et. al.
 
 ![network](https://i.imgur.com/wOnxWNc.png "Network")
 
+## DEMO (Training)
 
-## Algorithm
+Here, we introduce how to train the model with CelebA dataset.
 
-![algorithm](https://i.imgur.com/pdVz4Tf.png "Algorithm")
+### 1. Download the dataset
 
-**Equation 2**  
-![eq2](https://i.imgur.com/zRI5YgA.png)
-
-**Equation 3**  
-![eq3](https://i.imgur.com/e4AhoUg.png)
-
-**Equation 4**  
-![eq4](https://i.imgur.com/40IwojH.png)
-
-* Mc: completion region mask (it takes the value 1 inside regions to be completed and 0 elsewhere)
-* Md: random mask
-
-The training is split into thress phases.    
-* PHASE1: the completion network is trained with Equation 2 for Tc iterations.
-* PHASE2: only the context discriminators are trained with Equation 3 for Td iterations. At this time, the completion network is frozen.
-* PHASE3: Both the completion network and the context discriminators are trained jointly until the end of the training.
+First, you have to download **img_align_celeba.zip** from [here](https://drive.google.com/drive/folders/0B7EVK8r0v71pTUZsaXdaSnZBZzg).  
+Second, expand the zip file with `$ unzip img_align_celeba.zip` and move the expanded directory
+to the right place with `$ mv img_align_celeba <path_to_this_repo>/GLCIC-pytorch/results/`.
 
 
-## Notes
+### 2. Run train.py
 
-* Because the completion network is a FCNN, input images don't have to be resized.
-* completion regions of a training image are filled with the mean pixel value of all the training images.
+## DEMO (Inference)
