@@ -7,17 +7,22 @@ Here, we provide a high-quality pytorch implementation of [GLCIC](http://hi.cs.w
 
 ![network](https://i.imgur.com/wOnxWNc.png "Network")
 
-## DEMO (Training)
-
-Here, we introduce how to train the model with CelebA dataset.
-
-### 1. Download the dataset
-
-First, you have to download **img_align_celeba.zip** from [here](https://drive.google.com/drive/folders/0B7EVK8r0v71pTUZsaXdaSnZBZzg).  
-Second, expand the zip file with `$ unzip img_align_celeba.zip` and move the expanded directory
-to the right place with `$ mv img_align_celeba <path_to_this_repo>/GLCIC-pytorch/results/`.
-
-
-### 2. Run train.py
+## Dependencies
 
 ## DEMO (Inference)
+
+### 1. Download our pretrained model and the training config file.
+
+Pretrained model: [download](https://home.com)  
+Training config file: [download](https://hoge.com)  
+
+The pretrained model was trained with CelebA dataset.
+The hyper parameters and the model architecture is exactly the same
+as what described in the paper.
+
+The training config file saves the training settings in json format, and
+this file is required to make the model predict in the same environment as training time.
+
+### 2. Inference on a image
+
+## DEMO (Training)
