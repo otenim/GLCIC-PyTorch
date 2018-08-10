@@ -67,18 +67,18 @@ def gen_input_mask(
     return mask
 
 
-def gen_hole_area(mask_size, hole_area_size):
+def gen_hole_area(size, mask_size):
     """
     * inputs:
+        - size (sequence, required)
+                Size (w, h) of hole area.
         - mask_size (sequence, required)
                 Size (w, h) of input mask.
-        - hole_area_size (sequence, required)
-                Size (w, h) of hole area.
     * returns:
             A sequence which is used for the input argument 'hole_area' of function 'gen_input_mask'.
     """
     mask_w, mask_h = mask_size
-    harea_w, harea_h = hole_area_size
+    harea_w, harea_h = size
     offset_x = random.randint(0, mask_w - harea_w)
     offset_y = random.randint(0, mask_h - harea_h)
     return ((offset_x, offset_y), (harea_w, harea_h))
