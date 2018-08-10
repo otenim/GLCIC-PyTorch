@@ -15,11 +15,11 @@ parser.add_argument('model')
 parser.add_argument('config')
 parser.add_argument('input_img')
 parser.add_argument('output_img')
-parser.add_argument('--max_patches', type=int, default=3)
+parser.add_argument('--max_patches', type=int, default=1)
 parser.add_argument('--img_size', type=int, default=160)
-parser.add_argument('--ptch_min_w', type=int, default=8)
+parser.add_argument('--ptch_min_w', type=int, default=48)
 parser.add_argument('--ptch_max_w', type=int, default=96)
-parser.add_argument('--ptch_min_h', type=int, default=8)
+parser.add_argument('--ptch_min_h', type=int, default=48)
 parser.add_argument('--ptch_max_h', type=int, default=96)
 
 
@@ -37,8 +37,6 @@ def main(args):
     with open(args.config, 'r') as f:
         config = json.load(f)
     mpv = config['mean_pv']
-    comp_mpv = config['comp_mpv']
-
     model = CompletionNetwork()
     model.load_state_dict(torch.load(args.model, map_location='cpu'))
 
