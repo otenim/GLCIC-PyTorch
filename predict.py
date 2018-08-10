@@ -15,12 +15,12 @@ parser.add_argument('model')
 parser.add_argument('config')
 parser.add_argument('input_img')
 parser.add_argument('output_img')
-parser.add_argument('--max_patches', type=int, default=1)
+parser.add_argument('--max_holes', type=int, default=1)
 parser.add_argument('--img_size', type=int, default=160)
-parser.add_argument('--ptch_min_w', type=int, default=48)
-parser.add_argument('--ptch_max_w', type=int, default=96)
-parser.add_argument('--ptch_min_h', type=int, default=48)
-parser.add_argument('--ptch_max_h', type=int, default=96)
+parser.add_argument('--hole_min_w', type=int, default=48)
+parser.add_argument('--hole_max_w', type=int, default=96)
+parser.add_argument('--hole_min_h', type=int, default=48)
+parser.add_argument('--hole_max_h', type=int, default=96)
 
 
 def main(args):
@@ -55,10 +55,10 @@ def main(args):
     msk = gen_input_mask(
         shape=x.shape,
         hole_size=(
-            (args.ptch_min_w, args.ptch_max_w),
-            (args.ptch_min_h, args.ptch_max_w),
+            (args.hole_min_w, args.hole_max_w),
+            (args.hole_min_h, args.hole_max_h),
         ),
-        max_holes=args.max_patches,
+        max_holes=args.max_holes,
     )
 
     # inpaint

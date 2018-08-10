@@ -32,13 +32,13 @@ parser.add_argument('--Ttrain', type=int, default=500000)
 parser.add_argument('--snaperiod_1', type=int, default=18000)
 parser.add_argument('--snaperiod_2', type=int, default=2000)
 parser.add_argument('--snaperiod_3', type=int, default=80000)
-parser.add_argument('--max_patches', type=int, default=1)
-parser.add_argument('--ptch_reg_w', type=int, default=96)
-parser.add_argument('--ptch_reg_h', type=int, default=96)
-parser.add_argument('--ptch_min_w', type=int, default=48)
-parser.add_argument('--ptch_max_w', type=int, default=96)
-parser.add_argument('--ptch_min_h', type=int, default=48)
-parser.add_argument('--ptch_max_h', type=int, default=96)
+parser.add_argument('--max_holes', type=int, default=1)
+parser.add_argument('--hole_area_w', type=int, default=96)
+parser.add_argument('--hole_area_h', type=int, default=96)
+parser.add_argument('--hole_min_w', type=int, default=48)
+parser.add_argument('--hole_max_w', type=int, default=96)
+parser.add_argument('--hole_min_h', type=int, default=48)
+parser.add_argument('--hole_max_h', type=int, default=96)
 parser.add_argument('--cn_input_size', type=int, default=160)
 parser.add_argument('--gd_input_size', type=int, default=160)
 parser.add_argument('--ld_input_size', type=int, default=96)
@@ -79,7 +79,7 @@ def main(args):
         transforms.RandomCrop((args.cn_input_size, args.cn_input_size)),
         transforms.ToTensor(),
     ])
-    print('loading dataset...')
+    print('loading dataset... (it may take a few minutes)')
     train_dset = ImageDataset(os.path.join(args.data_dir, 'train'), trnsfm)
     test_dset = ImageDataset(os.path.join(args.data_dir, 'test'), trnsfm)
     train_loader = DataLoader(train_dset, batch_size=args.bsize, shuffle=args.shuffle)
@@ -121,9 +121,9 @@ def main(args):
 
             opt_cn.zero_grad()
 
-            # generate patch region
-            ptch_reg = gen_hole_area(
-                size=(args.ptch_reg_w, args.ptch_reg_h),
+            # generate hole area
+            hole_area = gen_hole_area(
+                size=(args.hole_area_w, args.hole_area_h),
                 mask_size=(x.shape[3], x.shape[2]),
             )
 
@@ -131,11 +131,11 @@ def main(args):
             msk = gen_input_mask(
                 shape=x.shape,
                 hole_size=(
-                    (args.ptch_min_w, args.ptch_max_w),
-                    (args.ptch_min_h, args.ptch_max_h),
+                    (args.hole_min_w, args.hole_max_w),
+                    (args.hole_min_h, args.hole_max_h),
                 ),
-                hole_area=ptch_reg,
-                max_holes=args.max_patches,
+                hole_area=hole_area,
+                max_holes=args.max_holes,
             )
 
             # merge x, mask, and mpv
@@ -193,8 +193,8 @@ def main(args):
             # ================================================
             # fake
             # ================================================
-            ptch_reg = gen_hole_area(
-                size=(args.ptch_reg_w, args.ptch_reg_h),
+            hole_area = gen_hole_area(
+                size=(args.hole_area_w, args.hole_area_h),
                 mask_size=(x.shape[3], x.shape[2]),
             )
 
@@ -202,11 +202,11 @@ def main(args):
             msk = gen_input_mask(
                 shape=x.shape,
                 hole_size=(
-                    (args.ptch_min_w, args.ptch_max_w),
-                    (args.ptch_min_h, args.ptch_max_h),
+                    (args.hole_min_w, args.hole_max_w),
+                    (args.hole_min_h, args.hole_max_h),
                 ),
-                hole_area=ptch_reg,
-                max_holes=args.max_patches,
+                hole_area=hole_area,
+                max_holes=args.max_holes,
             )
 
             fake = torch.zeros((len(x), 1)).to(device)
@@ -214,7 +214,7 @@ def main(args):
             input_cn = x - x * msk + mpv * msk
             output_cn = model_cn(input_cn)
             input_gd_fake = output_cn.detach()
-            input_ld_fake = crop_patch_region(input_gd_fake, ptch_reg)
+            input_ld_fake = crop(input_gd_fake, hole_area)
             input_fake = (input_ld_fake, input_gd_fake)
             output_fake = model_cd(input_fake)
             loss_fake = criterion_cd(output_fake, fake)
@@ -222,14 +222,14 @@ def main(args):
             # ================================================
             # real
             # ================================================
-            ptch_reg = gen_hole_area(
-                size=(args.ptch_reg_w, args.ptch_reg_h),
+            hole_area = gen_hole_area(
+                size=(args.hole_area_w, args.hole_area_h),
                 mask_size=(x.shape[3], x.shape[2]),
             )
 
             real = torch.ones((len(x), 1)).to(device)
             input_gd_real = x
-            input_ld_real = crop_patch_region(input_gd_real, ptch_reg)
+            input_ld_real = crop(input_gd_real, hole_area)
             input_real = (input_ld_real, input_gd_real)
             output_real = model_cd(input_real)
             loss_real = criterion_cd(output_real, real)
@@ -282,8 +282,8 @@ def main(args):
             opt_cd.zero_grad()
 
             # fake
-            ptch_reg = gen_hole_area(
-                size=(args.ptch_reg_w, args.ptch_reg_h),
+            hole_area = gen_hole_area(
+                size=(args.hole_area_w, args.hole_area_h),
                 mask_size=(x.shape[3], x.shape[2]),
             )
 
@@ -291,11 +291,11 @@ def main(args):
             msk = gen_input_mask(
                 shape=x.shape,
                 hole_size=(
-                    (args.ptch_min_w, args.ptch_max_w),
-                    (args.ptch_min_h, args.ptch_max_h),
+                    (args.hole_min_w, args.hole_max_w),
+                    (args.hole_min_h, args.hole_max_h),
                 ),
-                hole_area=ptch_reg,
-                max_holes=args.max_patches,
+                hole_area=hole_area,
+                max_holes=args.max_holes,
             )
 
             fake = torch.zeros((len(x), 1)).to(device)
@@ -303,20 +303,20 @@ def main(args):
             input_cn = x - x * msk + mpv * msk
             output_cn = model_cn(input_cn)
             input_gd_fake = output_cn.detach()
-            input_ld_fake = crop_patch_region(input_gd_fake, ptch_reg)
+            input_ld_fake = crop(input_gd_fake, hole_area)
             input_fake = (input_ld_fake, input_gd_fake)
             output_fake = model_cd(input_fake)
             loss_cd_1 = criterion_cd(output_fake, fake)
 
             # real
-            ptch_reg = gen_hole_area(
-                size=(args.ptch_reg_w, args.ptch_reg_h),
+            hole_area = gen_hole_area(
+                size=(args.hole_area_w, args.hole_area_h),
                 mask_size=(x.shape[3], x.shape[2]),
             )
 
             real = torch.ones((len(x), 1)).to(device)
             input_gd_real = x
-            input_ld_real = crop_patch_region(input_gd_real, ptch_reg)
+            input_ld_real = crop(input_gd_real, hole_area)
             input_real = (input_ld_real, input_gd_real)
             output_real = model_cd(input_real)
             loss_cd_2 = criterion_cd(output_real, real)
@@ -333,7 +333,7 @@ def main(args):
 
             loss_cn_1 = completion_network_loss(x, output_cn, msk)
             input_gd_fake = output_cn
-            input_ld_fake = crop_patch_region(input_gd_fake, ptch_reg)
+            input_ld_fake = crop(input_gd_fake, hole_area)
             input_fake = (input_ld_fake, input_gd_fake)
             output_fake = model_cd(input_fake)
             loss_cn_2 = criterion_cd(output_fake, real)
