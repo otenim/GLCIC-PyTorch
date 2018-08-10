@@ -59,7 +59,7 @@ $ python predict.py model_cn_step400000 config.json images/test_1.jpg out.jpg
 
 ## DEMO (Training)
 
-Here, we introduce how to train the model using CelebA dataset.
+Here, we introduce how to train a model using CelebA dataset.
 
 ### 1. Download the dataset
 
@@ -75,7 +75,7 @@ $ python make_dataset.py img_align_celeba/
 ```
 
 Originally, all the images are stored in `img_align_celeba/`,
-and the last command splits the dataset into two subsets; training dataset and test dataset. All the training images are stored in `img_align_celeba/train/`, while
+and the last command splits the dataset into two subsets; training dataset (80%) and test dataset (20%). All the training images are stored in `img_align_celeba/train/`, while
 the other images are in `img_align_celeba/test/`.
 
 
@@ -100,4 +100,76 @@ Under default settings, the numbers of training steps during phase 1, phase 2, a
 Basically, hyper parameters and the model architecture is exactly the same as described in the paper, but we changed the batch size from 96 to 16 due to lack of GPU memory.
 
 ## How to train with your own dataset ?
+
+### 1. Prepare dataset
+
+To train a model with your own dataset, first you have to make a dataset
+directory in the following format.
+
+```
+dataset/ # the directory name can be anything.
+    |____train/
+    |       |____XXXX.jpg # png images are also OK.
+    |       |____OOOO.jpg
+    |____test/
+            |____oooo.jpg
+            |____xxxx.jpg  
+```
+
+Images in `dataset/train/` are used for training models, while
+images in `dataset/test/` are used to perform test inpainting at each
+snapshot period.
+
+### 2. Training
+
+```bash
+# in ***/GLCIC-pytorch/
+$ mv dataset/ datasets/
+$ python train.py datasets/dataset/ results/result/ [--cn_input_size] [--ld_input_size] [--steps_1] [--steps_2] [--steps_3] [--snaperiod_1] [--snaperiod_2] [--snaperiod_3] [--bsize]
+```
+
+**Arguments**  
+* `--cn_input_size`: Input size of Completion Network (default: 160). All the input images are rescalled so that the length of the minimum side = cn_input_size,
+then cropped to cn_input_size x cn_input_size images.
+* `--ld_input_size`: Input size of Local Discriminator (default: 96).
+* `--steps_1`: Training iterations in phase 1 (default: 90,000).
+* `--steps_2`: Training iterations in phase 2 (default: 10,000).
+* `--steps_3`: Training iterations in the last phase (default: 400,000).
+* `--snaperiod_1`: Snapshot period in phase 1 (default: 18,000).
+* `--snaperiod_2`: Snapshot period in phase 2 (default: 2,000).
+* `--snaperiod_3`: Snapshot period in the last phase (default: 80,000).
+* `--bsize`: Batch size (default: 16).
+
+**Example**: If you'd like to train a model with batch size 24, and the other parameters are default values, run the following command.
+
+```bash
+# in ***/GLCIC-pytorch/
+$ python train.py datasets/dataset results/result --bsize 24
+```
+
 ## How to infer with your own dataset ?
+
+Suppose you've finished train a model and the result directory is set to `***/GLCIC-pytorch/results/result`, run the following command.
+
+```bash
+# in ***/GLCIC-pytorch/
+$ python predict.py results/result/phase_*/model_cn_step* results/result/config.json <input_img> <output_img> [--max_holes] [--img_size] [--hole_min_w] [--hole_max_w] [--hole_min_h] [--hole_max_h]
+```
+
+**Arguments**  
+* `<input_img>` (required): Path to an input image.
+* `<output_img>` (required): Path to an output image.
+* `[--max_holes]`: The max number of holes (default: 1).
+* `[--img_size]`: Input size of Completion Network (default: 160). The input image are rescalled so that the length of the minimum side = img_size,
+then cropped to img_size x img_size image.
+* `[--hole_min_w]`: The minimum width of a hole (default: 48).
+* `[--hole_max_w]`: The max width of a hole (default: 48).
+* `[--hole_min_h]`: The minimum height of a hole (default: 96).
+* `[--hole_max_h]`: The max height of a hole (default: 96).
+
+**Example**: If you'd like to make a inference with a input image `***/GLCIC-pytorch/input.jpg` and create an output image `***/GLCIC-pytorch/output.jpg`, run the following command.
+
+```bash
+# in ***/GLCIC-pytorch/
+$ python predict.py results/result/phase_*/model_cn_step* results/result/config.json input.jpg output.jpg
+```

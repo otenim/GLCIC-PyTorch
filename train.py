@@ -26,9 +26,9 @@ import json
 parser = argparse.ArgumentParser()
 parser.add_argument('data_dir')
 parser.add_argument('result_dir')
-parser.add_argument('--Tc', type=int, default=90000)
-parser.add_argument('--Td', type=int, default=10000)
-parser.add_argument('--Ttrain', type=int, default=500000)
+parser.add_argument('--steps_1', type=int, default=90000)
+parser.add_argument('--steps_2', type=int, default=10000)
+parser.add_argument('--steps_3', type=int, default=400000)
 parser.add_argument('--snaperiod_1', type=int, default=18000)
 parser.add_argument('--snaperiod_2', type=int, default=2000)
 parser.add_argument('--snaperiod_3', type=int, default=80000)
@@ -40,7 +40,6 @@ parser.add_argument('--hole_max_w', type=int, default=96)
 parser.add_argument('--hole_min_h', type=int, default=48)
 parser.add_argument('--hole_max_h', type=int, default=96)
 parser.add_argument('--cn_input_size', type=int, default=160)
-parser.add_argument('--gd_input_size', type=int, default=160)
 parser.add_argument('--ld_input_size', type=int, default=96)
 parser.add_argument('--bsize', type=int, default=16)
 parser.add_argument('--shuffle', default=True)
@@ -115,8 +114,8 @@ def main(args):
     opt_cn = Adadelta(model_cn.parameters(), lr=args.lr_cn, rho=args.rho_cn, weight_decay=args.wd_cn)
 
     # training
-    pbar = tqdm(total=args.Tc)
-    while pbar.n < args.Tc:
+    pbar = tqdm(total=args.steps_1)
+    while pbar.n < args.steps_1:
         for x in train_loader:
 
             opt_cn.zero_grad()
@@ -165,7 +164,7 @@ def main(args):
                     save_image(imgs, os.path.join(args.result_dir, 'phase_1', 'step%d.png' % pbar.n), nrow=len(x))
                     torch.save(model_cn.state_dict(), os.path.join(args.result_dir, 'phase_1', 'model_cn_step%d' % pbar.n))
 
-            if pbar.n >= args.Tc:
+            if pbar.n >= args.steps_1:
                 break
     pbar.close()
 
@@ -176,15 +175,15 @@ def main(args):
     # model, optimizer & criterion
     model_cd = ContextDiscriminator(
         local_input_shape=(3, args.ld_input_size, args.ld_input_size),
-        global_input_shape=(3, args.gd_input_size, args.gd_input_size),
+        global_input_shape=(3, args.cn_input_size, args.cn_input_size),
     )
     model_cd = model_cd.to(device)
     opt_cd = Adadelta(model_cd.parameters(), lr=args.lr_cd, rho=args.rho_cd, weight_decay=args.wd_cd)
     criterion_cd = BCELoss()
 
     # training
-    pbar = tqdm(total=args.Td)
-    while pbar.n < args.Td:
+    pbar = tqdm(total=args.steps_2)
+    while pbar.n < args.steps_2:
         for x in train_loader:
 
             opt_cd.zero_grad()
@@ -259,7 +258,7 @@ def main(args):
                     save_image(imgs, os.path.join(args.result_dir, 'phase_2', 'step%d.png' % pbar.n), nrow=len(x))
                     torch.save(model_cd.state_dict(), os.path.join(args.result_dir, 'phase_2', 'model_cd_step%d' % pbar.n))
 
-            if pbar.n >= args.Td:
+            if pbar.n >= args.steps_2:
                 break
     pbar.close()
 
@@ -268,10 +267,9 @@ def main(args):
     # Training Phase 3
     # ================================================
     # training
-    n_steps = args.Ttrain - (args.Tc + args.Td)
     alpha = torch.tensor(args.alpha).to(device)
-    pbar = tqdm(total=n_steps)
-    while pbar.n < n_steps:
+    pbar = tqdm(total=args.steps_3)
+    while pbar.n < args.steps_3:
         for x in train_loader:
 
             x = x.to(device)
@@ -363,7 +361,7 @@ def main(args):
                     torch.save(model_cn.state_dict(), os.path.join(args.result_dir, 'phase_3', 'model_cn_step%d' % pbar.n))
                     torch.save(model_cd.state_dict(), os.path.join(args.result_dir, 'phase_3', 'model_cd_step%d' % pbar.n))
 
-            if pbar.n >= n_steps:
+            if pbar.n >= args.steps_3:
                 break
     pbar.close()
 
