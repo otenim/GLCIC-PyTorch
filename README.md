@@ -46,7 +46,13 @@ This file is required to make models predict in the same environment as training
 
 ### 2. Inference
 
+![predict_1](https://i.imgur.com/U4VAeFc.jpg)  
+![predict_2](https://i.imgur.com/B4T8Z3Y.jpg)  
+![predict_3](https://i.imgur.com/1wRQf5m.jpg)  
 
-
+```bash
+# in GLCIC-pytorch/,
+$ python predict.py model_cn_step400000 config.json images/test_1.jpg out.jpg
+```
 
 ## DEMO (Training)
