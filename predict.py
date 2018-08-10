@@ -7,7 +7,7 @@ import torchvision.transforms as transforms
 from torchvision.utils import save_image
 from models import CompletionNetwork
 from PIL import Image
-from utils import add_random_patches, poisson_blend
+from utils import poisson_blend, gen_input_mask
 
 
 parser = argparse.ArgumentParser()
@@ -52,13 +52,13 @@ def main(args):
     x = torch.unsqueeze(x, dim=0)
 
     # create mask
-    msk = add_random_patches(
-        torch.zeros_like(x),
-        patch_size=(
+    msk = gen_input_mask(
+        shape=x.shape,
+        hole_size=(
             (args.ptch_min_w, args.ptch_max_w),
-            (args.ptch_min_h, args.ptch_max_h),
+            (args.ptch_min_h, args.ptch_max_w),
         ),
-        max_patches=args.max_patches,
+        max_holes=args.max_patches,
     )
 
     # inpaint

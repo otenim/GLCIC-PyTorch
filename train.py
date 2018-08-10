@@ -3,9 +3,9 @@ from models import CompletionNetwork, ContextDiscriminator
 from datasets import ImageDataset
 from losses import completion_network_loss
 from utils import (
-    add_random_patches,
-    gen_random_patch_region,
-    crop_patch_region,
+    gen_input_mask,
+    gen_hole_area,
+    crop,
     sample_random_batch,
     poisson_blend,
 )
@@ -122,19 +122,20 @@ def main(args):
             opt_cn.zero_grad()
 
             # generate patch region
-            ptch_reg = gen_random_patch_region(
+            ptch_reg = gen_hole_area(
                 mask_size=(x.shape[3], x.shape[2]),
-                region_size=(args.ptch_reg_w, args.ptch_reg_h),
+                hole_area_size=(args.ptch_reg_w, args.ptch_reg_h),
             )
 
             # create mask
-            msk = add_random_patches(
-                torch.zeros_like(x),
-                patch_size=(
+            msk = gen_input_mask(
+                shape=x.shape,
+                hole_size=(
                     (args.ptch_min_w, args.ptch_max_w),
                     (args.ptch_min_h, args.ptch_max_h)),
-                patch_region=ptch_reg,
-                max_patches=args.max_patches,
+                ),
+                hole_area=ptch_reg,
+                max_holes=args.max_patches,
             )
 
             # merge x, mask, and mpv
@@ -192,18 +193,20 @@ def main(args):
             # ================================================
             # fake
             # ================================================
-            ptch_reg = gen_random_patch_region(
+            ptch_reg = gen_hole_area(
                 mask_size=(x.shape[3], x.shape[2]),
-                region_size=(args.ptch_reg_w, args.ptch_reg_h),
+                hole_area_size=(args.ptch_reg_w, args.ptch_reg_h),
             )
 
-            msk = add_random_patches(
-                torch.zeros_like(x),
-                patch_size=(
+            # create mask
+            msk = gen_input_mask(
+                shape=x.shape,
+                hole_size=(
                     (args.ptch_min_w, args.ptch_max_w),
                     (args.ptch_min_h, args.ptch_max_h)),
-                patch_region=ptch_reg,
-                max_patches=args.max_patches,
+                ),
+                hole_area=ptch_reg,
+                max_holes=args.max_patches,
             )
 
             fake = torch.zeros((len(x), 1)).to(device)
@@ -219,9 +222,9 @@ def main(args):
             # ================================================
             # real
             # ================================================
-            ptch_reg = gen_random_patch_region(
+            ptch_reg = gen_hole_area(
                 mask_size=(x.shape[3], x.shape[2]),
-                region_size=(args.ptch_reg_w, args.ptch_reg_h),
+                hole_area_size=(args.ptch_reg_w, args.ptch_reg_h),
             )
 
             real = torch.ones((len(x), 1)).to(device)
@@ -279,18 +282,20 @@ def main(args):
             opt_cd.zero_grad()
 
             # fake
-            ptch_reg = gen_random_patch_region(
+            ptch_reg = gen_hole_area(
                 mask_size=(x.shape[3], x.shape[2]),
-                region_size=(args.ptch_reg_w, args.ptch_reg_h),
+                hole_area_size=(args.ptch_reg_w, args.ptch_reg_h),
             )
 
-            msk = add_random_patches(
-                torch.zeros_like(x),
-                patch_size=(
+            # create mask
+            msk = gen_input_mask(
+                shape=x.shape,
+                hole_size=(
                     (args.ptch_min_w, args.ptch_max_w),
                     (args.ptch_min_h, args.ptch_max_h)),
-                patch_region=ptch_reg,
-                max_patches=args.max_patches,
+                ),
+                hole_area=ptch_reg,
+                max_holes=args.max_patches,
             )
 
             fake = torch.zeros((len(x), 1)).to(device)
@@ -304,9 +309,9 @@ def main(args):
             loss_cd_1 = criterion_cd(output_fake, fake)
 
             # real
-            ptch_reg = gen_random_patch_region(
+            ptch_reg = gen_hole_area(
                 mask_size=(x.shape[3], x.shape[2]),
-                region_size=(args.ptch_reg_w, args.ptch_reg_h),
+                hole_area_size=(args.ptch_reg_w, args.ptch_reg_h),
             )
 
             real = torch.ones((len(x), 1)).to(device)
