@@ -5,7 +5,8 @@
 
 Here, we provide a high-quality pytorch implementation of [GLCIC](http://hi.cs.waseda.ac.jp/~iizuka/projects/completion/data/completion_sig2017.pdf) introduced by Iizuka et. al.
 
-![network](https://i.imgur.com/wOnxWNc.png "Network")
+![result_1](https://i.imgur.com/SYkn6Uo.png)  
+![result_2](https://i.imgur.com/T8GGx1g.jpg)
 
 ## Dependencies
 
@@ -36,13 +37,14 @@ Training config file: [download](https://keiojp0-my.sharepoint.com/:u:/g/persona
 Pretrained model: [download](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/EXPGbI_yvFNIhXNI7WgtgMkBdMbxJAdWJWbI5hNBJtHWUg?e=OYWDlH)  
 Training config file: [download](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/Ed0myTTrjN9FiX8sYwr4dsYBOEyj3pH_EQbu31HadjUvlw?e=DwAwaO)
 
-The pretrained model was trained with CelebA dataset.  
-The hyper parameters and the model architecture is exactly the same
-as what described in the paper.
+The pretrained model was trained with [CelebA](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html) dataset.  
+Hyper parameters and the model architecture is exactly the same as what described in the paper.
 
-Training config file saves training settings in json format.  
+The training config file saves training settings in json format.  
 This file is required to make models predict in the same environment as training time.
 
 ### 2. Inference
+
+
 
 ## DEMO (Training)
