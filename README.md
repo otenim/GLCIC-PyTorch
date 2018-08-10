@@ -128,6 +128,8 @@ $ mv dataset/ datasets/
 $ python train.py datasets/dataset/ results/result/ [--cn_input_size] [--ld_input_size] [--steps_1] [--steps_2] [--steps_3] [--snaperiod_1] [--snaperiod_2] [--snaperiod_3] [--bsize]
 ```
 
+Training results (trained models and inference results at each snapshot period) are to be saved in `results/result/`.
+
 **Arguments**  
 * `--cn_input_size`: Input size of Completion Network (default: 160). All the input images are rescalled so that the length of the minimum side = cn_input_size,
 then randomly cropped to cn_input_size x cn_input_size images.
