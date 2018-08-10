@@ -173,3 +173,8 @@ then randomly cropped to a img_size x img_size image.
 # in ***/GLCIC-pytorch/
 $ python predict.py results/result/phase_*/model_cn_step* results/result/config.json input.jpg output.jpg
 ```
+
+## Future Work
+
+* Provide a model pretrained with [Places2](http://places2.csail.mit.edu/).
+* Provide a model pretrained with [ImageNet](http://www.image-net.org/).
