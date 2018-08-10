@@ -132,7 +132,7 @@ def main(args):
                 shape=x.shape,
                 hole_size=(
                     (args.ptch_min_w, args.ptch_max_w),
-                    (args.ptch_min_h, args.ptch_max_h)),
+                    (args.ptch_min_h, args.ptch_max_h),
                 ),
                 hole_area=ptch_reg,
                 max_holes=args.max_patches,
@@ -203,7 +203,7 @@ def main(args):
                 shape=x.shape,
                 hole_size=(
                     (args.ptch_min_w, args.ptch_max_w),
-                    (args.ptch_min_h, args.ptch_max_h)),
+                    (args.ptch_min_h, args.ptch_max_h),
                 ),
                 hole_area=ptch_reg,
                 max_holes=args.max_patches,
@@ -292,7 +292,7 @@ def main(args):
                 shape=x.shape,
                 hole_size=(
                     (args.ptch_min_w, args.ptch_max_w),
-                    (args.ptch_min_h, args.ptch_max_h)),
+                    (args.ptch_min_h, args.ptch_max_h),
                 ),
                 hole_area=ptch_reg,
                 max_holes=args.max_patches,
