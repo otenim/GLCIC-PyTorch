@@ -38,9 +38,8 @@ Training config file: [download](https://keiojp0-my.sharepoint.com/:u:/g/persona
 Pretrained model: [download](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/EXPGbI_yvFNIhXNI7WgtgMkBdMbxJAdWJWbI5hNBJtHWUg?e=OYWDlH)  
 Training config file: [download](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/Ed0myTTrjN9FiX8sYwr4dsYBOEyj3pH_EQbu31HadjUvlw?e=DwAwaO)
 
-The pretrained model was trained with [CelebA](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html) dataset.  
-Hyper parameters and the model architecture is exactly the same as what described in the paper.  
-The training config file saves training settings in json format.
+The pretrained model was trained with [CelebA](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html) dataset,  
+and the training config file saves training settings in json format.
 
 
 ### 2. Inference
@@ -70,14 +69,14 @@ Second, run the following commands.
 
 ```bash
 $ unzip img_align_celeba.zip
-$ mv img_align_celeba ***/GLCIC-pytorch/datasets/
+$ mv img_align_celeba/ ***/GLCIC-pytorch/datasets/
 $ cd ***/GLCIC-pytorch/datasets/
-$ python make_dataset.py img_align_celeba
+$ python make_dataset.py img_align_celeba/
 ```
 
 Originally, all the images are stored in `img_align_celeba/`,
-and the last command splits the dataset into two subsets; training dataset and test dataset. All the training images are stored in `img_align_celeba/train`, while
-the other images are in `img_align_celeba/test`.
+and the last command splits the dataset into two subsets; training dataset and test dataset. All the training images are stored in `img_align_celeba/train/`, while
+the other images are in `img_align_celeba/test/`.
 
 
 ### 2. Training
@@ -86,14 +85,19 @@ Just run the following command.
 
 ```
 # in ***/GLCIC-pytorch/
-$ python train.py datasets/img_align_celeba results/test
+$ python train.py datasets/img_align_celeba results/demo/
 ```
 
-Training results (trained models and inference results at each snapshot period) are to be saved in `results/test`.
+Training results (trained models and inference results at each snapshot period) are to be saved in `results/demo/`.
 
 The training procedure consists the following three phases.  
-1. In phase 1, only Completion Network is trained.
-2. In phase 2, only Contect Discriminator is trained (Completion Network is frozen).
-3. In phase 3, the Completion Network and the Context Discriminator are jointly trained.
+1. In phase 1, only Completion Network (i.e., generator) is trained.
+2. In phase 2, only Contect Discriminator (i.e., discriminator) is trained, while Completion Network is frozen.
+3. In phase 3, Both of the Completion Network and the Context Discriminator are jointly trained.
 
-Under the default settings, the numbers of training iterations of phase 1, phase 2, and phase 3 are 90,000, 10,000, and 400,000, and each snapshot period is set to 18,000, 2,000, and 80,000, respectively. Bach size is set to 16, while the input size is 160 x 160 (all the input images are rescalled so that the length of the minumum side is 160 pixel, then randomly cropped to 160 x 160 images).
+Under default settings, the numbers of training steps during phase 1, phase 2, and phase 3 are 90,000, 10,000, and 400,000. Each snapshot period is set to 18,000, 2,000, and 80,000, respectively. Bach size is set to 16, while input image size is 160 x 160 (all the input images are rescalled so that the minumum side is 160, then randomly cropped to 160 x 160 images).
+
+Basically, hyper parameters and the model architecture is exactly the same as described in the paper, but we changed the batch size from 96 to 16 due to lack of GPU memory.
+
+## How to train with your own dataset ?
+## How to infer with your own dataset ?
