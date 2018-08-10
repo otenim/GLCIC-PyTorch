@@ -46,6 +46,10 @@ This file is required to make models predict in the same environment as training
 
 ### 2. Inference
 
+Left: input image  
+Center: input image of GLCIC  
+Right: output image of GLCIC  
+
 ![predict_1](https://i.imgur.com/U4VAeFc.jpg)  
 ![predict_2](https://i.imgur.com/B4T8Z3Y.jpg)  
 ![predict_3](https://i.imgur.com/1wRQf5m.jpg)  
