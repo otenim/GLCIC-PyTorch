@@ -54,8 +54,46 @@ Right: output image of GLCIC
 ![predict_3](https://i.imgur.com/1wRQf5m.jpg)  
 
 ```bash
-# in GLCIC-pytorch/,
+# in ***/GLCIC-pytorch/,
 $ python predict.py model_cn_step400000 config.json images/test_1.jpg out.jpg
 ```
 
 ## DEMO (Training)
+
+Here, we introduce how to train the model using CelebA dataset.
+
+### 1. Download the dataset
+
+First, download the dataset (i.e., img_align_celeba.zip) from [this official link](https://drive.google.com/open?id=0B7EVK8r0v71pZjFTYXZWM3FlRnM).
+
+Second, run the following commands.
+
+```bash
+$ unzip img_align_celeba.zip
+$ mv img_align_celeba ***/GLCIC-pytorch/datasets/
+$ cd ***/GLCIC-pytorch/datasets/
+$ python make_dataset.py img_align_celeba
+```
+
+Originally, all the images are stored in `img_align_celeba/`,
+and the last command splits the dataset into two subsets; training dataset and test dataset. All the training images are stored in `img_align_celeba/train`, while
+the other images are in `img_align_celeba/test`.
+
+
+### 2. Training
+
+Just run the following command.
+
+```
+# in ***/GLCIC-pytorch/
+$ python train.py datasets/img_align_celeba results/test
+```
+
+Training results (trained models and inference results at each snapshot period) are to be saved in `results/test`.
+
+The training procedure consists the following three phases.  
+1. In phase 1, only Completion Network is trained.
+2. In phase 2, only Contect Discriminator is trained (Completion Network is frozen).
+3. In phase 3, the Completion Network and the Context Discriminator are jointly trained.
+
+Under the default settings, the numbers of training iterations of phase 1, phase 2, and phase 3 are 90,000, 10,000, and 400,000, and each snapshot period is set to 18,000, 2,000, and 80,000, respectively. Bach size is set to 16, while the input size is 160 x 160 (all the input images are rescalled so that the length of the minumum side is 160 pixel, then randomly cropped to 160 x 160 images).
