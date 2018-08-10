@@ -4,101 +4,100 @@ import torchvision.transforms as transforms
 import numpy as np
 from poissonblending import blend
 
-def add_random_patches(
-    mask, patch_size,
-    patch_region=None, max_patches=1):
+
+def gen_input_mask(
+    shape, hole_size,
+    hole_area=None, max_holes=1):
     """
     * inputs:
-        - mask (torch.Tensor, required):
-                A (samples, c, h, w) format pytorch tensor.
-                its values are filled with 0.
-        - patch_size (sequence or int, required):
-                Desired size of pathces.
+        - shape (sequence, required):
+                Shape of output mask.
+                A 4D tuple (samples, c, h, w) is assumed.
+        - hole_size (sequence or int, required):
+                Size of holes created in a mask.
                 If a sequence of length 4 provided,
-                patches of size (w, h) = (
-                    patch_size[0][0] <= patch_size[0][1],
-                    patch_size[1][0] <= patch_size[1][1],
+                holes of size (w, h) = (
+                    hole_size[0][0] <= hole_size[0][1],
+                    hole_size[1][0] <= hole_size[1][1],
                 ) are generated.
-                All the patched pixel values are filled with 1.
-        - patch_region (sequence, optional):
-                A region where pathces are randomly generated.
-                patch_region[0] means the left corner (x, y) of the region,
-                and patch_region[1] mean the width and height (w, h) of it.
-                This is used as an input region of Local discriminator.
+                All the pixel values within holes are filled with 1.
+        - hole_area (sequence, optional):
+                This argument constraints the area where holes are generated.
+                hole_area[0] is the left corner (x, y) of the area,
+                while hole_area[1] is its width and height (w, h).
+                This area is used as the input region of Local discriminator.
                 The default value is None.
-        - max_patches (int, optional):
-                It specifies how many patches are generated.
+        - max_holes (int, optional):
+                This argument specifies how many holes are generated.
+                The number of holes is randomly chosen from [1, max_holes].
                 The default value is 1.
     * returns:
-            Input mask tensor with generated pathces
-            where all the pixel values are filled with 1.
+            Input mask tensor with holes.
+            All the pixel values within holes are filled with 1,
+            while the other pixel values are 0.
     """
-
-    mask = mask.clone()
+    mask = torch.zeros(shape)
     bsize, _, mask_h, mask_w = mask.shape
     masks = []
     for i in range(bsize):
-        n_patches = random.choice(list(range(1, max_patches+1)))
-        for j in range(n_patches):
+        n_holes = random.choice(list(range(1, max_holes+1)))
+        for j in range(n_holes):
             # choose patch width
-            if isinstance(patch_size[0], tuple) and len(patch_size[0]) == 2:
-                patch_w = random.randint(patch_size[0][0], patch_size[0][1])
+            if isinstance(hole_size[0], tuple) and len(hole_size[0]) == 2:
+                hole_w = random.randint(hole_size[0][0], hole_size[0][1])
             else:
-                patch_w = patch_size[0]
+                hole_w = hole_size[0]
 
             # choose patch height
-            if isinstance(patch_size[1], tuple) and len(patch_size[1]) == 2:
-                patch_h = random.randint(patch_size[1][0], patch_size[1][1])
+            if isinstance(hole_size[1], tuple) and len(hole_size[1]) == 2:
+                hole_h = random.randint(hole_size[1][0], hole_size[1][1])
             else:
-                patch_h = patch_size[1]
+                hole_h = hole_size[1]
 
             # choose offset upper-left coordinate
-            if patch_region:
-                preg_xmin, preg_ymin = patch_region[0]
-                preg_w, preg_h = patch_region[1]
-                offset_x = random.randint(preg_xmin, preg_xmin + preg_w - patch_w)
-                offset_y = random.randint(preg_ymin, preg_ymin + preg_h - patch_h)
+            if hole_area:
+                harea_xmin, harea_ymin = hole_area[0]
+                harea_w, harea_h = hole_area[1]
+                offset_x = random.randint(harea_xmin, harea_xmin + harea_w - hole_w)
+                offset_y = random.randint(harea_ymin, harea_ymin + harea_h - hole_h)
             else:
-                offset_x = random.randint(0, mask_w - patch_w)
-                offset_y = random.randint(0, mask_h - patch_h)
-            mask[i, :, offset_y : offset_y + patch_h, offset_x : offset_x + patch_w] = 1.0
+                offset_x = random.randint(0, mask_w - hole_w)
+                offset_y = random.randint(0, mask_h - hole_h)
+            mask[i, :, offset_y : offset_y + hole_h, offset_x : offset_x + hole_w] = 1.0
     return mask
 
 
-def gen_random_patch_region(mask_size, region_size):
+def gen_hole_area(mask_size, hole_area_size):
     """
     * inputs:
         - mask_size (sequence, required)
-                The size of an inputs mask tensor.
-        - region_size (sequence, required)
-                The size of a region where patches are generated.
+                Size (w, h) of input mask.
+        - hole_area_size (sequence, required)
+                Size (w, h) of hole area.
     * returns:
-            A random region of size (w, h) = (region_size[0], region_size[1])
-            where patches are generated.
-            returns[0] means the left corner (x, y) of the region,
-            and returns[1] mean the size (w, h) of the region.
-            This sequence is used as an input argument of add_random_patches function.
-            The region is randomly generated within the input mask.
+            A sequence which is used for the input argument 'hole_area' of function 'gen_input_mask'.
     """
     mask_w, mask_h = mask_size
-    region_w, region_h = region_size
-    offset_x = random.randint(0, mask_w - region_w)
-    offset_y = random.randint(0, mask_h - region_h)
-    return ((offset_x, offset_y), (region_w, region_h))
+    harea_w, harea_h = hole_area_size
+    offset_x = random.randint(0, mask_w - harea_w)
+    offset_y = random.randint(0, mask_h - harea_h)
+    return ((offset_x, offset_y), (harea_w, harea_h))
 
 
-def crop_patch_region(x, patch_region):
+def crop(x, area):
     """
     * inputs:
         - x (torch.Tensor, required)
                 A pytorch 4D tensor (samples, c, h, w).
-        - patch_region (sequence, required)
-                A patch region ((x_min, y_min), (w, h)).
+        - area (sequence, required)
+                A sequence of length 2 ((x_min, y_min), (w, h)).
+                sequence[0] is the left corner of the area to be cropped.
+                sequence[1] is its width and height.
     * returns:
-            A pytorch tensor cropped in the input patch region.
+            A pytorch tensor cropped in the specified area.
     """
-    xmin, ymin = patch_region[0]
-    w, h = patch_region[1]
+    xmin, ymin = area[0]
+    w, h = area[1]
     return x[:, :, ymin : ymin + h, xmin : xmin + w]
 
 
@@ -128,8 +127,8 @@ def poisson_blend(input, output, mask):
                 Input tensor of Completion Network.
         - output (torch.Tensor, required)
                 Output tensor of Completion Network.
-        - mask
-                Mask tensor for the input tensor.
+        - mask (torch.Tensor, required)
+                Input mask tensor of Completion Network.
     * returns:
                 Image tensor inpainted using poisson image editing method.
     """
