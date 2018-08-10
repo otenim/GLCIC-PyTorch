@@ -19,7 +19,7 @@ We tested our scripts in the following environment.
 * tqdm: 4.24.0
 * Pillow: 5.2.0
 * numpy: 1.15.0
-* pyamg: 3.3.2
+* pyamg: **3.3.2 (important)**
 * scipy: 1.1.0
 * GPU: Geforce GTX 1080Ti (12GB RAM) X 1
 
