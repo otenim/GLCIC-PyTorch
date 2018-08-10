@@ -130,7 +130,7 @@ $ python train.py datasets/dataset/ results/result/ [--cn_input_size] [--ld_inpu
 
 **Arguments**  
 * `--cn_input_size`: Input size of Completion Network (default: 160). All the input images are rescalled so that the length of the minimum side = cn_input_size,
-then cropped to cn_input_size x cn_input_size images.
+then randomly cropped to cn_input_size x cn_input_size images.
 * `--ld_input_size`: Input size of Local Discriminator (default: 96).
 * `--steps_1`: Training iterations in phase 1 (default: 90,000).
 * `--steps_2`: Training iterations in phase 2 (default: 10,000).
@@ -159,9 +159,9 @@ $ python predict.py results/result/phase_*/model_cn_step* results/result/config.
 **Arguments**  
 * `<input_img>` (required): Path to an input image.
 * `<output_img>` (required): Path to an output image.
-* `[--max_holes]`: The max number of holes (default: 1).
 * `[--img_size]`: Input size of Completion Network (default: 160). The input image are rescalled so that the length of the minimum side = img_size,
-then cropped to img_size x img_size image.
+then randomly cropped to a img_size x img_size image.
+* `[--max_holes]`: The max number of holes (default: 1).
 * `[--hole_min_w]`: The minimum width of a hole (default: 48).
 * `[--hole_max_w]`: The max width of a hole (default: 48).
 * `[--hole_min_h]`: The minimum height of a hole (default: 96).
