@@ -5,8 +5,9 @@
 
 Here, we provide a high-quality pytorch implementation of [GLCIC](http://hi.cs.waseda.ac.jp/~iizuka/projects/completion/data/completion_sig2017.pdf) introduced by Iizuka et. al.
 
+![glcic](https://i.imgur.com/KY26J85.png)  
 ![result_1](https://i.imgur.com/SYkn6Uo.png)  
-![result_2](https://i.imgur.com/T8GGx1g.jpg)
+![result_2](https://i.imgur.com/T8GGx1g.jpg)  
 
 ## Dependencies
 
