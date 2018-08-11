@@ -52,6 +52,7 @@ parser.add_argument('--rho_cd', type=float, default=0.9)
 parser.add_argument('--wd_cd', type=float, default=0.0)
 parser.add_argument('--alpha', type=float, default=4e-4)
 parser.add_argument('--comp_mpv', default=True)
+parser.add_argument('--model_arc', choices=['celeba', 'places2'], default='celeba')
 
 
 def main(args):
@@ -176,6 +177,7 @@ def main(args):
     model_cd = ContextDiscriminator(
         local_input_shape=(3, args.ld_input_size, args.ld_input_size),
         global_input_shape=(3, args.cn_input_size, args.cn_input_size),
+        mode=args.model_arc,
     )
     model_cd = model_cd.to(device)
     opt_cd = Adadelta(model_cd.parameters(), lr=args.lr_cd, rho=args.rho_cd, weight_decay=args.wd_cd)
