@@ -50,7 +50,7 @@ parser.add_argument('--rho_cd', type=float, default=0.9)
 parser.add_argument('--wd_cd', type=float, default=0.0)
 parser.add_argument('--alpha', type=float, default=4e-4)
 parser.add_argument('--comp_mpv', default=True)
-parser.add_argument('--max_mpv_samples', type=int, default=100000)
+parser.add_argument('--max_mpv_samples', type=int, default=10000)
 parser.add_argument('--model_arc', choices=['celeba', 'places2'], default='celeba')
 
 
