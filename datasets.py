@@ -13,13 +13,13 @@ class ImageDataset(data.Dataset):
         self.data_dir = os.path.expanduser(data_dir)
         self.transform = transform
         self.imgpaths = self.__load_imgpaths_from_dir(self.data_dir)
-        random.shuffle(self.imgpaths)
 
     def __len__(self):
         return len(self.imgpaths)
 
-    def __getitem__(self, index):
+    def __getitem__(self, index, color_format='RGB'):
         img = Image.open(self.imgpaths[index])
+        img = img.convert(color_format)
         if self.transform is not None:
             img = self.transform(img)
         return img
