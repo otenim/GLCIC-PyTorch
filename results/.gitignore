@@ -1,3 +1,5 @@
 test/
 test_*/
+celeba_*/
+places2_*/
 *.tar.gz
