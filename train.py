@@ -33,8 +33,6 @@ parser.add_argument('--snaperiod_1', type=int, default=18000)
 parser.add_argument('--snaperiod_2', type=int, default=2000)
 parser.add_argument('--snaperiod_3', type=int, default=80000)
 parser.add_argument('--max_holes', type=int, default=1)
-parser.add_argument('--hole_area_w', type=int, default=96)
-parser.add_argument('--hole_area_h', type=int, default=96)
 parser.add_argument('--hole_min_w', type=int, default=48)
 parser.add_argument('--hole_max_w', type=int, default=96)
 parser.add_argument('--hole_min_h', type=int, default=48)
@@ -52,6 +50,7 @@ parser.add_argument('--rho_cd', type=float, default=0.9)
 parser.add_argument('--wd_cd', type=float, default=0.0)
 parser.add_argument('--alpha', type=float, default=4e-4)
 parser.add_argument('--comp_mpv', default=True)
+parser.add_argument('--max_mpv_samples', type=int, default=100000)
 parser.add_argument('--model_arc', choices=['celeba', 'places2'], default='celeba')
 
 
@@ -84,19 +83,18 @@ def main(args):
     test_dset = ImageDataset(os.path.join(args.data_dir, 'test'), trnsfm)
     train_loader = DataLoader(train_dset, batch_size=args.bsize, shuffle=args.shuffle)
 
-    # compute the mean pixel value of datasets
+    # compute the mean pixel value of train dataset
     mean_pv = 0.
+    imgpaths = train_dset.imgpaths[:min(args.max_mpv_samples, len(train_dset))]
     if args.comp_mpv:
-        imgpaths = train_dset.imgpaths + test_dset.imgpaths
         pbar = tqdm(total=len(imgpaths), desc='computing the mean pixel value')
         for imgpath in imgpaths:
             img = Image.open(imgpath)
-            x = np.array(img, dtype=np.float32)
+            x = np.array(img, dtype=np.float32) / 255.
             mean_pv += x.mean()
             pbar.update()
-        pbar.close()
         mean_pv /= len(imgpaths)
-        mean_pv /= 255. # normalize
+        pbar.close()
     mpv = torch.tensor(mean_pv).to(device)
 
     # save training config
@@ -123,7 +121,7 @@ def main(args):
 
             # generate hole area
             hole_area = gen_hole_area(
-                size=(args.hole_area_w, args.hole_area_h),
+                size=(args.ld_input_size, args.ld_input_size),
                 mask_size=(x.shape[3], x.shape[2]),
             )
 
@@ -195,7 +193,7 @@ def main(args):
             # fake
             # ================================================
             hole_area = gen_hole_area(
-                size=(args.hole_area_w, args.hole_area_h),
+                size=(args.ld_input_size, args.ld_input_size),
                 mask_size=(x.shape[3], x.shape[2]),
             )
 
@@ -224,7 +222,7 @@ def main(args):
             # real
             # ================================================
             hole_area = gen_hole_area(
-                size=(args.hole_area_w, args.hole_area_h),
+                size=(args.ld_input_size, args.ld_input_size),
                 mask_size=(x.shape[3], x.shape[2]),
             )
 
@@ -283,7 +281,7 @@ def main(args):
 
             # fake
             hole_area = gen_hole_area(
-                size=(args.hole_area_w, args.hole_area_h),
+                size=(args.ld_input_size, args.ld_input_size),
                 mask_size=(x.shape[3], x.shape[2]),
             )
 
@@ -310,7 +308,7 @@ def main(args):
 
             # real
             hole_area = gen_hole_area(
-                size=(args.hole_area_w, args.hole_area_h),
+                size=(args.ld_input_size, args.ld_input_size),
                 mask_size=(x.shape[3], x.shape[2]),
             )
 
