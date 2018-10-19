@@ -41,7 +41,7 @@ parser.add_argument('--cn_input_size', type=int, default=160)
 parser.add_argument('--ld_input_size', type=int, default=96)
 parser.add_argument('--bsize', type=int, default=16)
 parser.add_argument('--shuffle', default=True)
-parser.add_argument('--no_cuda', default=False)
+parser.add_argument('--num_gpus', type=int, choices=[1, 2], default=1)
 parser.add_argument('--lr_cn', type=float, default=1.0)
 parser.add_argument('--rho_cn', type=float, default=0.9)
 parser.add_argument('--wd_cn', type=float, default=0.0)
@@ -62,8 +62,16 @@ def main(args):
     args.data_dir = os.path.expanduser(args.data_dir)
     args.result_dir = os.path.expanduser(args.result_dir)
 
-    use_cuda = not args.no_cuda and torch.cuda.is_available()
-    device = torch.device('cuda' if use_cuda else 'cpu')
+    if torch.cuda.is_available() == False:
+        raise Exception('At least one gpu must be available.')
+    if args.num_gpus == 1:
+        # train models in a single gpu
+        gpu_cn = torch.device('cuda:0')
+        gpu_cd = gpu_cn
+    else:
+        # train models in different two gpus
+        gpu_cn = torch.device('cuda:0')
+        gpu_cd = torch.device('cuda:1')
 
     # create result directory (if necessary)
     if os.path.exists(args.result_dir) == False:
@@ -95,7 +103,7 @@ def main(args):
             pbar.update()
         mean_pv /= len(imgpaths)
         pbar.close()
-    mpv = torch.tensor(mean_pv).to(device)
+    mpv = torch.tensor(mean_pv).to(gpu_cn)
 
     # save training config
     args_dict = vars(args)
@@ -109,7 +117,7 @@ def main(args):
     # ================================================
     # model & optimizer
     model_cn = CompletionNetwork()
-    model_cn = model_cn.to(device)
+    model_cn = model_cn.to(gpu_cn)
     opt_cn = Adadelta(model_cn.parameters(), lr=args.lr_cn, rho=args.rho_cn, weight_decay=args.wd_cn)
 
     # training
@@ -138,8 +146,8 @@ def main(args):
 
             # merge x, mask, and mpv
             msg = 'phase 1 |'
-            x = x.to(device)
-            msk = msk.to(device)
+            x = x.to(gpu_cn)
+            msk = msk.to(gpu_cn)
             input = x - x * msk + mpv * msk
             output = model_cn(input)
             loss = completion_network_loss(x, output, msk)
@@ -155,7 +163,7 @@ def main(args):
                 with torch.no_grad():
 
                     x = sample_random_batch(test_dset, batch_size=args.bsize)
-                    x = x.to(device)
+                    x = x.to(gpu_cn)
                     input = x - x * msk + mpv * msk
                     output = model_cn(input)
                     completed = poisson_blend(input, output, msk)
@@ -177,7 +185,7 @@ def main(args):
         global_input_shape=(3, args.cn_input_size, args.cn_input_size),
         mode=args.model_arc,
     )
-    model_cd = model_cd.to(device)
+    model_cd = model_cd.to(gpu_cd)
     opt_cd = Adadelta(model_cd.parameters(), lr=args.lr_cd, rho=args.rho_cd, weight_decay=args.wd_cd)
     criterion_cd = BCELoss()
 
@@ -186,8 +194,8 @@ def main(args):
     while pbar.n < args.steps_2:
         for x in train_loader:
 
+            x = x.to(gpu_cn)
             opt_cd.zero_grad()
-            x = x.to(device)
 
             # ================================================
             # fake
@@ -208,13 +216,13 @@ def main(args):
                 max_holes=args.max_holes,
             )
 
-            fake = torch.zeros((len(x), 1)).to(device)
-            msk = msk.to(device)
+            fake = torch.zeros((len(x), 1)).to(gpu_cd)
+            msk = msk.to(gpu_cn)
             input_cn = x - x * msk + mpv * msk
             output_cn = model_cn(input_cn)
             input_gd_fake = output_cn.detach()
             input_ld_fake = crop(input_gd_fake, hole_area)
-            input_fake = (input_ld_fake, input_gd_fake)
+            input_fake = (input_ld_fake.to(gpu_cd), input_gd_fake.to(gpu_cd))
             output_fake = model_cd(input_fake)
             loss_fake = criterion_cd(output_fake, fake)
 
@@ -226,10 +234,10 @@ def main(args):
                 mask_size=(x.shape[3], x.shape[2]),
             )
 
-            real = torch.ones((len(x), 1)).to(device)
+            real = torch.ones((len(x), 1)).to(gpu_cd)
             input_gd_real = x
             input_ld_real = crop(input_gd_real, hole_area)
-            input_real = (input_ld_real, input_gd_real)
+            input_real = (input_ld_real.to(gpu_cd), input_gd_real.to(gpu_cd))
             output_real = model_cd(input_real)
             loss_real = criterion_cd(output_real, real)
 
@@ -250,7 +258,7 @@ def main(args):
                 with torch.no_grad():
 
                     x = sample_random_batch(test_dset, batch_size=args.bsize)
-                    x = x.to(device)
+                    x = x.to(gpu_cn)
                     input = x - x * msk + mpv * msk
                     output = model_cn(input)
                     completed = poisson_blend(input, output, msk)
@@ -267,12 +275,12 @@ def main(args):
     # Training Phase 3
     # ================================================
     # training
-    alpha = torch.tensor(args.alpha).to(device)
+    alpha = torch.tensor(args.alpha).to(gpu_cd)
     pbar = tqdm(total=args.steps_3)
     while pbar.n < args.steps_3:
         for x in train_loader:
 
-            x = x.to(device)
+            x = x.to(gpu_cn)
 
             # ================================================
             # train model_cd
@@ -296,13 +304,13 @@ def main(args):
                 max_holes=args.max_holes,
             )
 
-            fake = torch.zeros((len(x), 1)).to(device)
-            msk = msk.to(device)
+            fake = torch.zeros((len(x), 1)).to(gpu_cd)
+            msk = msk.to(gpu_cn)
             input_cn = x - x * msk + mpv * msk
             output_cn = model_cn(input_cn)
             input_gd_fake = output_cn.detach()
             input_ld_fake = crop(input_gd_fake, hole_area)
-            input_fake = (input_ld_fake, input_gd_fake)
+            input_fake = (input_ld_fake.to(gpu_cd), input_gd_fake.to(gpu_cd))
             output_fake = model_cd(input_fake)
             loss_cd_1 = criterion_cd(output_fake, fake)
 
@@ -312,10 +320,10 @@ def main(args):
                 mask_size=(x.shape[3], x.shape[2]),
             )
 
-            real = torch.ones((len(x), 1)).to(device)
+            real = torch.ones((len(x), 1)).to(gpu_cd)
             input_gd_real = x
             input_ld_real = crop(input_gd_real, hole_area)
-            input_real = (input_ld_real, input_gd_real)
+            input_real = (input_ld_real.to(gpu_cd), input_gd_real.to(gpu_cd))
             output_real = model_cd(input_real)
             loss_cd_2 = criterion_cd(output_real, real)
 
@@ -332,7 +340,7 @@ def main(args):
             loss_cn_1 = completion_network_loss(x, output_cn, msk)
             input_gd_fake = output_cn
             input_ld_fake = crop(input_gd_fake, hole_area)
-            input_fake = (input_ld_fake, input_gd_fake)
+            input_fake = (input_ld_fake.to(gpu_cd), input_gd_fake.to(gpu_cd))
             output_fake = model_cd(input_fake)
             loss_cn_2 = criterion_cd(output_fake, real)
 
@@ -352,7 +360,7 @@ def main(args):
                 with torch.no_grad():
 
                     x = sample_random_batch(test_dset, batch_size=args.bsize)
-                    x = x.to(device)
+                    x = x.to(gpu_cn)
                     input = x - x * msk + mpv * msk
                     output = model_cn(input)
                     completed = poisson_blend(input, output, msk)
