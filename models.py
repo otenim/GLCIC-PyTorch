@@ -7,7 +7,6 @@ from layers import Flatten, Concatenate
 class CompletionNetwork(nn.Module):
 
     def __init__(self):
-
         super(CompletionNetwork, self).__init__()
         # input_shape: (None, 3, img_h, img_w)
         self.conv1 = nn.Conv2d(3, 64, kernel_size=5, stride=1, padding=2)
@@ -79,7 +78,6 @@ class CompletionNetwork(nn.Module):
         # output_shape: (None, 3, img_h. img_w)
 
     def forward(self, x):
-
         x = self.bn1(self.act1(self.conv1(x)))
         x = self.bn2(self.act2(self.conv2(x)))
         x = self.bn3(self.act3(self.conv3(x)))
@@ -103,7 +101,6 @@ class CompletionNetwork(nn.Module):
 class LocalDiscriminator(nn.Module):
 
     def __init__(self, input_shape):
-
         super(LocalDiscriminator, self).__init__()
         self.input_shape = input_shape
         self.output_shape = (1024,)
@@ -139,7 +136,6 @@ class LocalDiscriminator(nn.Module):
         # output_shape: (None, 1024)
 
     def forward(self, x):
-
         x = self.bn1(self.act1(self.conv1(x)))
         x = self.bn2(self.act2(self.conv2(x)))
         x = self.bn3(self.act3(self.conv3(x)))
@@ -152,7 +148,6 @@ class LocalDiscriminator(nn.Module):
 class GlobalDiscriminator(nn.Module):
 
     def __init__(self, input_shape, mode='celeba'):
-
         super(GlobalDiscriminator, self).__init__()
         self.mode = mode
         self.input_shape = input_shape
@@ -204,7 +199,6 @@ class GlobalDiscriminator(nn.Module):
 
 
     def forward(self, x):
-
         x = self.bn1(self.act1(self.conv1(x)))
         x = self.bn2(self.act2(self.conv2(x)))
         x = self.bn3(self.act3(self.conv3(x)))
