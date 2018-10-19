@@ -150,6 +150,8 @@ def main(args):
             msk = msk.to(gpu_cn)
             input = x - x * msk + mpv * msk
             output = model_cn(input)
+
+            # optimize
             loss = completion_network_loss(x, output, msk)
             loss.backward()
             opt_cn.step()
@@ -337,7 +339,7 @@ def main(args):
             # ================================================
             opt_cn.zero_grad()
 
-            loss_cn_1 = completion_network_loss(x, output_cn, msk)
+            loss_cn_1 = completion_network_loss(x, output_cn, msk).to(gpu_cd)
             input_gd_fake = output_cn
             input_ld_fake = crop(input_gd_fake, hole_area)
             input_fake = (input_ld_fake.to(gpu_cd), input_gd_fake.to(gpu_cd))
