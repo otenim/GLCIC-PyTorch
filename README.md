@@ -49,7 +49,7 @@ Right: output image of GLCIC
 
 ```bash
 # in ***/GLCIC-pytorch/,
-$ python predict.py model_cn_step400000 config.json images/test_1.jpg out.jpg
+$ python predict.py model_cn_step800000 config.json images/test_1.jpg out.jpg
 ```
 
 ## DEMO (Training)
@@ -58,7 +58,7 @@ Here, we introduce how to train a model using CelebA dataset.
 
 ### 1. Download the dataset
 
-First, download the dataset (i.e., img_align_celeba.zip) from [this official link](https://drive.google.com/open?id=0B7EVK8r0v71pZjFTYXZWM3FlRnM).
+First, download the dataset (i.e., img\_align\_celeba.zip) from [this official link](https://drive.google.com/open?id=0B7EVK8r0v71pZjFTYXZWM3FlRnM).
 
 Second, run the following commands.
 
@@ -126,8 +126,8 @@ $ python train.py datasets/dataset/ results/result/ [--cn_input_size] [--ld_inpu
 Training results (trained models and inference results at each snapshot period) are to be saved in `results/result/`.
 
 **Arguments**  
-* `--cn_input_size`: Input size of Completion Network (default: 160). All the input images are rescalled so that the length of the minimum side = cn_input_size,
-then randomly cropped to cn_input_size x cn_input_size images.
+* `--cn_input_size`: Input size of Completion Network (default: 160). All the input images are rescalled so that the length of the minimum side = cn\_input\_size,
+then randomly cropped to cn\_input\_size x cn\_input\_size images.
 * `--ld_input_size`: Input size of Local Discriminator (default: 96).
 * `--steps_1`: Training iterations in phase 1 (default: 90,000).
 * `--steps_2`: Training iterations in phase 2 (default: 10,000).
@@ -156,8 +156,8 @@ $ python predict.py results/result/phase_*/model_cn_step* results/result/config.
 **Arguments**  
 * `<input_img>` (required): Path to an input image.
 * `<output_img>` (required): Path to an output image.
-* `[--img_size]`: Input size of Completion Network (default: 160). The input image are rescalled so that the length of the minimum side = img_size,
-then randomly cropped to a img_size x img_size image.
+* `[--img_size]`: Input size of Completion Network (default: 160). The input image are rescalled so that the length of the minimum side = img\_size,
+then randomly cropped to a img\_size x img\_size image.
 * `[--max_holes]`: The max number of holes (default: 1).
 * `[--hole_min_w]`: The minimum width of a hole (default: 48).
 * `[--hole_max_w]`: The max width of a hole (default: 48).
