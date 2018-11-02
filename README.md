@@ -48,7 +48,7 @@ Right: output image of GLCIC
 ![predict_3](https://i.imgur.com/1wRQf5m.jpg)  
 
 ```bash
-# in ***/GLCIC-pytorch/,
+# in {path_to_this_repo}/GLCIC-pytorch/,
 $ python predict.py model_cn_step800000 config.json images/test_1.jpg out.jpg
 ```
 
@@ -153,7 +153,7 @@ $ python train.py datasets/dataset results/result --bsize 24
 Suppose you've finished train a model and the result directory is `{path_to_this_repo}/GLCIC-pytorch/results/result`, run the following command.
 
 ```bash
-# in {path_to_this_repo}/GLCIC-pytorch/
+# in {path_to_this_repo}/GLCIC-pytorch/,
 $ python predict.py results/result/phase_3/model_cn_step{step_number} results/result/config.json <input_img> <output_img> [--max_holes] [--img_size] [--hole_min_w] [--hole_max_w] [--hole_min_h] [--hole_max_h]
 ```
 
@@ -171,7 +171,7 @@ then randomly cropped to a img\_size x img\_size image.
 **Example**: If you'd like to make a inference with a input image `{path_to_this_repo}/GLCIC-pytorch/input.jpg` and create an output image `{path_to_this_repo}/GLCIC-pytorch/output.jpg`, run the following command.
 
 ```bash
-# in ***/GLCIC-pytorch/
+# in {path_to_this_repo}/GLCIC-pytorch/,
 $ python predict.py results/result/phase_3/model_cn_step{step_number} results/result/config.json input.jpg output.jpg
 ```
 
