@@ -64,8 +64,8 @@ Second, run the following commands.
 
 ```bash
 $ unzip img_align_celeba.zip
-$ mv img_align_celeba/ ***/GLCIC-pytorch/datasets/
-$ cd ***/GLCIC-pytorch/datasets/
+$ mv img_align_celeba/ {path_to_this_repo}/GLCIC-pytorch/datasets/
+$ cd {path_to_this_repo}/GLCIC-pytorch/datasets/
 $ python make_dataset.py img_align_celeba/
 ```
 
@@ -78,8 +78,8 @@ the other images are in `img_align_celeba/test/`.
 
 Just run the following command.
 
-```
-# in ***/GLCIC-pytorch/
+```bash
+# in {path_to_this_repo}/GLCIC-pytorch/,
 $ python train.py datasets/img_align_celeba results/demo/
 ```
 
@@ -87,7 +87,7 @@ Training results (trained models and inference results at each snapshot period) 
 
 The training procedure consists the following three phases.  
 1. In phase 1, only Completion Network (i.e., generator) is trained.
-2. In phase 2, only Contect Discriminator (i.e., discriminator) is trained, while Completion Network is frozen.
+2. In phase 2, only Context Discriminator (i.e., discriminator) is trained, while Completion Network is frozen.
 3. In phase 3, Both of the Completion Network and the Context Discriminator are jointly trained.
 
 Under default settings, the numbers of training steps during phase 1, phase 2, and phase 3 are 90,000, 10,000, and 400,000. Each snapshot period is set to 18,000, 2,000, and 80,000, respectively. Bach size is set to 16, while input image size is 160 x 160 (all the input images are rescalled so that the minumum side is 160, then randomly cropped to 160 x 160 images).
@@ -118,12 +118,12 @@ snapshot period.
 ### 2. Training
 
 ```bash
-# in ***/GLCIC-pytorch/
+# in {path_to_this_repo}/GLCIC-pytorch/,
 $ mv dataset/ datasets/
 $ python train.py datasets/dataset/ results/result/ [--cn_input_size] [--ld_input_size] [--steps_1] [--steps_2] [--steps_3] [--snaperiod_1] [--snaperiod_2] [--snaperiod_3] [--bsize]
 ```
 
-Training results (trained models and inference results at each snapshot period) are to be saved in `results/result/`.
+Training results for each training phase (trained models and test completion results at each snapshot period) are to be stored in `results/result/`.
 
 **Arguments**  
 * `--cn_input_size`: Input size of Completion Network (default: 160). All the input images are rescalled so that the length of the minimum side = cn\_input\_size,
@@ -136,21 +136,25 @@ then randomly cropped to cn\_input\_size x cn\_input\_size images.
 * `--snaperiod_2`: Snapshot period in phase 2 (default: 2,000).
 * `--snaperiod_3`: Snapshot period in the last phase (default: 80,000).
 * `--bsize`: Batch size (default: 16).
+* `--num_gpus`: 1 or 2. If this parameter is set to 1, both Completion Network and
+Context Discriminator are run on a single GPU.
+On the other hand, if it is set to 2, Completion Network and Context Discriminator
+are run on two different gpus separately (default: 1).
 
 **Example**: If you'd like to train a model with batch size 24, and the other parameters are default values, run the following command.
 
 ```bash
-# in ***/GLCIC-pytorch/
+# in {path_to_this_repo}/GLCIC-pytorch/,
 $ python train.py datasets/dataset results/result --bsize 24
 ```
 
 ## How to infer with your own dataset ?
 
-Suppose you've finished train a model and the result directory is set to `***/GLCIC-pytorch/results/result`, run the following command.
+Suppose you've finished train a model and the result directory is `{path_to_this_repo}/GLCIC-pytorch/results/result`, run the following command.
 
 ```bash
-# in ***/GLCIC-pytorch/
-$ python predict.py results/result/phase_*/model_cn_step* results/result/config.json <input_img> <output_img> [--max_holes] [--img_size] [--hole_min_w] [--hole_max_w] [--hole_min_h] [--hole_max_h]
+# in {path_to_this_repo}/GLCIC-pytorch/
+$ python predict.py results/result/phase_3/model_cn_step{step_number} results/result/config.json <input_img> <output_img> [--max_holes] [--img_size] [--hole_min_w] [--hole_max_w] [--hole_min_h] [--hole_max_h]
 ```
 
 **Arguments**  
@@ -164,11 +168,11 @@ then randomly cropped to a img\_size x img\_size image.
 * `[--hole_min_h]`: The minimum height of a hole (default: 96).
 * `[--hole_max_h]`: The max height of a hole (default: 96).
 
-**Example**: If you'd like to make a inference with a input image `***/GLCIC-pytorch/input.jpg` and create an output image `***/GLCIC-pytorch/output.jpg`, run the following command.
+**Example**: If you'd like to make a inference with a input image `{path_to_this_repo}/GLCIC-pytorch/input.jpg` and create an output image `{path_to_this_repo}/GLCIC-pytorch/output.jpg`, run the following command.
 
 ```bash
 # in ***/GLCIC-pytorch/
-$ python predict.py results/result/phase_*/model_cn_step* results/result/config.json input.jpg output.jpg
+$ python predict.py results/result/phase_3/model_cn_step{step_number} results/result/config.json input.jpg output.jpg
 ```
 
 ## Future Work
