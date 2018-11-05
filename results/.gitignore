@@ -2,4 +2,5 @@ test/
 test_*/
 celeba_*/
 places2_*/
+latest/
 *.tar.gz
