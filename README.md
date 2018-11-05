@@ -18,8 +18,8 @@ We tested our scripts in the following environment.
 * torchvision: 0.2.1
 * tqdm: 4.24.0
 * Pillow: 5.2.0
-* numpy: 1.15.0
-* pyamg: **3.3.2 (important)**
+* numpy: <font color="Red">**1.14.5 (important)**</font>
+* pyamg: <font color="Red">**3.3.2 (important)**</font>
 * scipy: 1.1.0
 * GPU: Geforce GTX 1080Ti (12GB RAM) X 1
 
@@ -30,8 +30,8 @@ use a more than middle-range GPU such as GTX 1070 or GTX 1080(Ti).
 
 ### 1. Download our pretrained model and the training config file.
 
-Pretrained model: [download](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/ESE3r7YYFkxFp6HPsHs0GiMBbWfUXMfCX38kuvjZepxz_A?e=562a4C)  
-Training config file: [download](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/EUjlDkDjzxVOt69QPD7AGtcBPrX9pc1XfGMoOTgj8E5wow?e=6s4SYi)
+Pretrained model: [download](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/ETadvo335qNJvYa-chglWFsBmkVM9xH_c9WkdNkMBpVo2Q?e=H9g60Q)  
+Training config file: [download](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/EWQL72AQjUhNsdsVN-AtAIMBWR_Xx-dBr48gbqpR47mlgQ?e=eCDjcl)
 
 The pretrained model was trained with [CelebA](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html) dataset,  
 and the training config file saves training settings in json format.
@@ -49,7 +49,7 @@ Right: output image of GLCIC
 
 ```bash
 # in {path_to_this_repo}/GLCIC-pytorch/,
-$ python predict.py model_cn_step800000 config.json images/test_1.jpg out.jpg
+$ python predict.py model_cn_step400000 config.json images/test_1.jpg out.jpg
 ```
 
 ## DEMO (Training)
