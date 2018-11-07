@@ -136,6 +136,7 @@ then randomly cropped to cn\_input\_size x cn\_input\_size images.
 * `--snaperiod_2`: Snapshot period in phase 2 (default: 2,000).
 * `--snaperiod_3`: Snapshot period in the last phase (default: 80,000).
 * `--bsize`: Batch size (default: 16).
+* `--optimizer`: 'adadelta' or 'adam' (default: 'adadelta').
 * `--num_gpus`: 1 or 2. If this parameter is set to 1, both Completion Network and
 Context Discriminator are run on a single GPU.
 On the other hand, if it is set to 2, Completion Network and Context Discriminator
