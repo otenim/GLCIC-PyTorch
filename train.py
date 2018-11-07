@@ -10,7 +10,7 @@ from utils import (
     poisson_blend,
 )
 from torch.utils.data import DataLoader
-from torch.optim import Adadelta
+from torch.optim import Adadelta, Adam
 from torch.nn import BCELoss
 from torchvision.utils import save_image
 from PIL import Image
@@ -39,19 +39,12 @@ parser.add_argument('--hole_min_h', type=int, default=48)
 parser.add_argument('--hole_max_h', type=int, default=96)
 parser.add_argument('--cn_input_size', type=int, default=160)
 parser.add_argument('--ld_input_size', type=int, default=96)
+parser.add_argument('--optimizer', type=str, choices=['adadelta', 'adam'], default='adadelta')
 parser.add_argument('--bsize', type=int, default=16)
-parser.add_argument('--shuffle', default=True)
 parser.add_argument('--num_gpus', type=int, choices=[1, 2], default=1)
-parser.add_argument('--lr_cn', type=float, default=1.0)
-parser.add_argument('--rho_cn', type=float, default=0.9)
-parser.add_argument('--wd_cn', type=float, default=0.0)
-parser.add_argument('--lr_cd', type=float, default=1.0)
-parser.add_argument('--rho_cd', type=float, default=0.9)
-parser.add_argument('--wd_cd', type=float, default=0.0)
 parser.add_argument('--alpha', type=float, default=4e-4)
 parser.add_argument('--comp_mpv', default=True)
 parser.add_argument('--max_mpv_samples', type=int, default=10000)
-parser.add_argument('--model_arc', choices=['celeba', 'places2'], default='celeba')
 
 
 def main(args):
@@ -89,7 +82,7 @@ def main(args):
     print('loading dataset... (it may take a few minutes)')
     train_dset = ImageDataset(os.path.join(args.data_dir, 'train'), trnsfm)
     test_dset = ImageDataset(os.path.join(args.data_dir, 'test'), trnsfm)
-    train_loader = DataLoader(train_dset, batch_size=args.bsize, shuffle=args.shuffle)
+    train_loader = DataLoader(train_dset, batch_size=args.bsize, shuffle=True)
 
     # compute the mean pixel value of train dataset
     mean_pv = 0.
@@ -118,7 +111,10 @@ def main(args):
     # model & optimizer
     model_cn = CompletionNetwork()
     model_cn = model_cn.to(gpu_cn)
-    opt_cn = Adadelta(model_cn.parameters(), lr=args.lr_cn, rho=args.rho_cn, weight_decay=args.wd_cn)
+    if args.optimizer == 'adadelta':
+        opt_cn = Adadelta(model_cn.parameters())
+    else:
+        opt_cn = Adam(model_cn.parameters())
 
     # training
     pbar = tqdm(total=args.steps_1)
@@ -185,10 +181,12 @@ def main(args):
     model_cd = ContextDiscriminator(
         local_input_shape=(3, args.ld_input_size, args.ld_input_size),
         global_input_shape=(3, args.cn_input_size, args.cn_input_size),
-        mode=args.model_arc,
     )
     model_cd = model_cd.to(gpu_cd)
-    opt_cd = Adadelta(model_cd.parameters(), lr=args.lr_cd, rho=args.rho_cd, weight_decay=args.wd_cd)
+    if args.optimizer == 'adadelta':
+        opt_cd = Adadelta(model_cd.parameters())
+    else:
+        opt_cd = Adam(model_cd.parameters())
     criterion_cd = BCELoss()
 
     # training
