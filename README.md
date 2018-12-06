@@ -135,6 +135,11 @@ then randomly cropped to cn\_input\_size x cn\_input\_size images.
 * `--snaperiod_1`: Snapshot period in phase 1 (default: 18,000).
 * `--snaperiod_2`: Snapshot period in phase 2 (default: 2,000).
 * `--snaperiod_3`: Snapshot period in the last phase (default: 80,000).
+* `[--max_holes]`: The max number of holes (default: 1).
+* `[--hole_min_w]`: The minimum width of a hole (default: 48).
+* `[--hole_max_w]`: The max width of a hole (default: 48).
+* `[--hole_min_h]`: The minimum height of a hole (default: 96).
+* `[--hole_max_h]`: The max height of a hole (default: 96).
 * `--bsize`: Batch size (default: 16).
 * `--optimizer`: 'adadelta' or 'adam' (default: 'adadelta').
 * `--num_gpus`: 1 or 2. If this parameter is set to 1, both Completion Network and
