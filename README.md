@@ -13,8 +13,8 @@ Here, we provide a high-quality pytorch implementation of [GLCIC](http://hi.cs.w
 
 We tested our scripts in the following environment.
 
-* Python: 3.5 or 3.6
-* torch: 0.4.1 or 0.4.0
+* Python: 3.5, 3.6
+* torch: 0.4.1, 1.0.0
 * torchvision: 0.2.1
 * tqdm: 4.24.0
 * Pillow: 5.2.0
