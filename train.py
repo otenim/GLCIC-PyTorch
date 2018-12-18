@@ -26,6 +26,8 @@ import json
 parser = argparse.ArgumentParser()
 parser.add_argument('data_dir')
 parser.add_argument('result_dir')
+parser.add_argument('--init_model_cn', type=str, default=None)
+parser.add_argument('--init_model_cd', type=str, default=None)
 parser.add_argument('--steps_1', type=int, default=90000)
 parser.add_argument('--steps_2', type=int, default=10000)
 parser.add_argument('--steps_3', type=int, default=400000)
@@ -54,6 +56,10 @@ def main(args):
     # ================================================
     args.data_dir = os.path.expanduser(args.data_dir)
     args.result_dir = os.path.expanduser(args.result_dir)
+    if args.init_model_cn != None:
+        args.init_model_cn = os.path.expanduser(args.init_model_cn)
+    if args.init_model_cd != None:
+        args.init_model_cd = os.path.expanduser(args.init_model_cd)
 
     if torch.cuda.is_available() == False:
         raise Exception('At least one gpu must be available.')
@@ -110,11 +116,13 @@ def main(args):
     # ================================================
     # model & optimizer
     model_cn = CompletionNetwork()
-    model_cn = model_cn.to(gpu_cn)
+    if args.init_model_cn != None:
+        model_cn.load_state_dict(torch.load(args.init_model_cn, map_location='cpu'))
     if args.optimizer == 'adadelta':
         opt_cn = Adadelta(model_cn.parameters())
     else:
         opt_cn = Adam(model_cn.parameters())
+    model_cn = model_cn.to(gpu_cn)
 
     # training
     pbar = tqdm(total=args.steps_1)
@@ -182,12 +190,14 @@ def main(args):
         local_input_shape=(3, args.ld_input_size, args.ld_input_size),
         global_input_shape=(3, args.cn_input_size, args.cn_input_size),
     )
-    model_cd = model_cd.to(gpu_cd)
+    if args.init_model_cd != None:
+        model_cd.load_state_dict(torch.load(args.init_model_cd, map_location='cpu'))
     if args.optimizer == 'adadelta':
         opt_cd = Adadelta(model_cd.parameters())
     else:
         opt_cd = Adam(model_cd.parameters())
-    criterion_cd = BCELoss()
+    model_cd = model_cd.to(gpu_cd)
+    bceloss = BCELoss()
 
     # training
     pbar = tqdm(total=args.steps_2)
@@ -224,7 +234,7 @@ def main(args):
             input_ld_fake = crop(input_gd_fake, hole_area)
             input_fake = (input_ld_fake.to(gpu_cd), input_gd_fake.to(gpu_cd))
             output_fake = model_cd(input_fake)
-            loss_fake = criterion_cd(output_fake, fake)
+            loss_fake = bceloss(output_fake, fake)
 
             # ================================================
             # real
@@ -239,7 +249,7 @@ def main(args):
             input_ld_real = crop(input_gd_real, hole_area)
             input_real = (input_ld_real.to(gpu_cd), input_gd_real.to(gpu_cd))
             output_real = model_cd(input_real)
-            loss_real = criterion_cd(output_real, real)
+            loss_real = bceloss(output_real, real)
 
             # ================================================
             # optimize
@@ -312,7 +322,7 @@ def main(args):
             input_ld_fake = crop(input_gd_fake, hole_area)
             input_fake = (input_ld_fake.to(gpu_cd), input_gd_fake.to(gpu_cd))
             output_fake = model_cd(input_fake)
-            loss_cd_1 = criterion_cd(output_fake, fake)
+            loss_cd_1 = bceloss(output_fake, fake)
 
             # real
             hole_area = gen_hole_area(
@@ -325,7 +335,7 @@ def main(args):
             input_ld_real = crop(input_gd_real, hole_area)
             input_real = (input_ld_real.to(gpu_cd), input_gd_real.to(gpu_cd))
             output_real = model_cd(input_real)
-            loss_cd_2 = criterion_cd(output_real, real)
+            loss_cd_2 = bceloss(output_real, real)
 
             # optimize
             loss_cd = (loss_cd_1 + loss_cd_2) * alpha / 2.
@@ -342,7 +352,7 @@ def main(args):
             input_ld_fake = crop(input_gd_fake, hole_area)
             input_fake = (input_ld_fake.to(gpu_cd), input_gd_fake.to(gpu_cd))
             output_fake = model_cd(input_fake)
-            loss_cn_2 = criterion_cd(output_fake, real)
+            loss_cn_2 = bceloss(output_fake, real)
 
             # optimize
             loss_cn = (loss_cn_1 + alpha * loss_cn_2) / 2.
