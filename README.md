@@ -126,23 +126,27 @@ $ python train.py datasets/dataset/ results/result/ [--cn_input_size] [--ld_inpu
 Training results for each training phase (trained models and test completion results at each snapshot period) are to be stored in `results/result/`.
 
 **Arguments**  
-* `--cn_input_size`: Input size of Completion Network (default: 160). All the input images are rescalled so that the length of the minimum side = cn\_input\_size,
+* `<dataset>` (required): Path to the dataset directory.
+* `<result>` (required): Path to the result directory.
+* `[--cn_input_size]`: Input size of Completion Network (default: 160). All the input images are rescalled so that the length of the minimum side = cn\_input\_size,
 then randomly cropped to cn\_input\_size x cn\_input\_size images.
-* `--ld_input_size`: Input size of Local Discriminator (default: 96).
-* `--steps_1`: Training iterations in phase 1 (default: 90,000).
-* `--steps_2`: Training iterations in phase 2 (default: 10,000).
-* `--steps_3`: Training iterations in the last phase (default: 400,000).
-* `--snaperiod_1`: Snapshot period in phase 1 (default: 18,000).
-* `--snaperiod_2`: Snapshot period in phase 2 (default: 2,000).
-* `--snaperiod_3`: Snapshot period in the last phase (default: 80,000).
+* `[--ld_input_size]`: Input size of Local Discriminator (default: 96).
+* `[--init_model_cn]`: Path to the pre-trained model of Completion Network. This is used as the initial parameters (default: None).
+* `[--init_model_cd]`: Path to the pre-trained model of Context Discriminator (default: None).
+* `[--steps_1]`: Training iterations in phase 1 (default: 90,000).
+* `[--steps_2]`: Training iterations in phase 2 (default: 10,000).
+* `[--steps_3]`: Training iterations in the last phase (default: 400,000).
+* `[--snaperiod_1]`: Snapshot period in phase 1 (default: 18,000).
+* `[--snaperiod_2]`: Snapshot period in phase 2 (default: 2,000).
+* `[--snaperiod_3]`: Snapshot period in the last phase (default: 80,000).
 * `[--max_holes]`: The max number of holes (default: 1).
 * `[--hole_min_w]`: The minimum width of a hole (default: 48).
 * `[--hole_max_w]`: The max width of a hole (default: 48).
 * `[--hole_min_h]`: The minimum height of a hole (default: 96).
 * `[--hole_max_h]`: The max height of a hole (default: 96).
-* `--bsize`: Batch size (default: 16).
-* `--optimizer`: 'adadelta' or 'adam' (default: 'adadelta').
-* `--num_gpus`: 1 or 2. If this parameter is set to 1, both Completion Network and
+* `[--bsize]`: Batch size (default: 16).
+* `[--optimizer]`: 'adadelta' or 'adam' (default: 'adadelta').
+* `[--num_gpus]`: 1 or 2. If this parameter is set to 1, both Completion Network and
 Context Discriminator are run on a single GPU.
 On the other hand, if it is set to 2, Completion Network and Context Discriminator
 are run on two different gpus separately (default: 1).
