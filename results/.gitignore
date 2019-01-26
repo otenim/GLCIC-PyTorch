@@ -1,5 +1,7 @@
 test/
 test_*/
+celeba/
+places2/
 celeba_*/
 places2_*/
 latest/
