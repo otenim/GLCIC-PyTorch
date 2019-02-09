@@ -159,8 +159,8 @@ def main(args):
             # optimize
             loss = completion_network_loss(x, output, msk)
             loss.backward()
+            cnt_batch_divs += 1
             if cnt_batch_divs < args.batch_divs:
-                cnt_batch_divs += 1
                 continue
             cnt_batch_divs = 0
             opt_cn.step()
@@ -261,8 +261,8 @@ def main(args):
             # ================================================
             loss = (loss_fake + loss_real) / 2.
             loss.backward()
+            cnt_batch_divs += 1
             if cnt_batch_divs < args.batch_divs:
-                cnt_batch_divs += 1
                 continue
             cnt_batch_divs = 0
             opt_cd.step()
@@ -349,6 +349,7 @@ def main(args):
             # optimize
             loss_cd = (loss_cd_1 + loss_cd_2) * alpha / 2.
             loss_cd.backward()
+            cnt_batch_divs += 1
             if cnt_batch_divs < args.batch_divs:
                 pass
             else:
@@ -369,12 +370,10 @@ def main(args):
             loss_cn = (loss_cn_1 + alpha * loss_cn_2) / 2.
             loss_cn.backward()
             if cnt_batch_divs < args.batch_divs:
-                cnt_batch_divs += 1
                 continue
             cnt_batch_divs = 0
             opt_cn.step()
             opt_cn.zero_grad()
-
             msg = 'phase 3 |'
             msg += ' train loss (cd): %.5f' % loss_cd.cpu()
             msg += ' train loss (cn): %.5f' % loss_cn.cpu()
