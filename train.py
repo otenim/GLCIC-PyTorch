@@ -237,7 +237,7 @@ def main(args):
                 # clear grads
                 opt_cd.zero_grad()
                 # update progbar
-                pbar.set_description('phat 2 | train loss: %.5f' % loss.cpu())
+                pbar.set_description('phase 2 | train loss: %.5f' % loss.cpu())
                 pbar.update()
                 # test
                 if pbar.n % args.snaperiod_2 == 0:
