@@ -48,6 +48,15 @@ parser.add_argument('--num_gpus', type=int, choices=[1, 2], default=1)
 parser.add_argument('--alpha', type=float, default=4e-4)
 
 
+def save_completed_images(model_cn, x, msk, mpv, filepath):
+    with torch.no_grad():
+        input = x - x * msk + mpv * msk
+        output = model_cn(input)
+        completed = poisson_blend(input, output, msk)
+        imgs = torch.cat((input.cpu(), completed.cpu()), dim=0)
+        save_image(imgs, filepath, nrow=len(x))
+
+
 def main(args):
 
     # ================================================
@@ -111,7 +120,6 @@ def main(args):
     # ================================================
     # Training Phase 1
     # ================================================
-    # model & optimizer
     model_cn = CompletionNetwork()
     if args.init_model_cn != None:
         model_cn.load_state_dict(torch.load(args.init_model_cn, map_location='cpu'))
@@ -151,30 +159,23 @@ def main(args):
             loss.backward()
             cnt_bdivs += 1
             if cnt_bdivs > args.bdivs:
-
+                cnt_bdivs = 0
                 # optimize
                 opt_cn.step()
-                cnt_bdivs = 0
-
                 # clear grads
                 opt_cn.zero_grad()
-
                 # update progbar
                 pbar.set_description('phase 1 | train loss: %.5f' % loss.cpu())
                 pbar.update()
-
                 # test
                 if pbar.n % args.snaperiod_1 == 0:
-                with torch.no_grad():
                     x = sample_random_batch(test_dset, batch_size=args.bsize)
                     x = x.to(gpu_cn)
-                    input = x - x * msk + mpv * msk
-                    output = model_cn(input)
-                    completed = poisson_blend(input, output, msk)
-                    imgs = torch.cat((input.cpu(), completed.cpu()), dim=0)
-                    save_image(imgs, os.path.join(args.result_dir, 'phase_1', 'step%d.png' % pbar.n), nrow=len(x))
-                    torch.save(model_cn.state_dict(), os.path.join(args.result_dir, 'phase_1', 'model_cn_step%d' % pbar.n))
-
+                    image_filepath = os.path.join(args.result_dir, 'phase_1', 'step%d.png' % pbar.n)
+                    model_filepath = os.path.join(args.result_dir, 'phase_1', 'model_cn_step%d' % pbar.n)
+                    save_completed_images(model_cn, x, msk, mpv, image_filepath)
+                    torch.save(model_cn.state_dict(), model_filepath)
+                # terminate
                 if pbar.n >= args.steps_1:
                     break
     pbar.close()
@@ -183,7 +184,6 @@ def main(args):
     # ================================================
     # Training Phase 2
     # ================================================
-    # model, optimizer & criterion
     model_cd = ContextDiscriminator(
         local_input_shape=(3, args.ld_input_size, args.ld_input_size),
         global_input_shape=(3, args.cn_input_size, args.cn_input_size),
@@ -250,30 +250,23 @@ def main(args):
             loss.backward()
             cnt_bdivs += 1
             if cnt_bdivs > args.bdivs:
-
+                cnt_bdivs = 0
                 # optimize
                 opt_cd.step()
-                cnt_bdivs = 0
-
                 # clear grads
                 opt_cd.zero_grad()
-
                 # update progbar
                 pbar.set_description('phat 2 | train loss: %.5f' % loss.cpu())
                 pbar.update()
-
                 # test
                 if pbar.n % args.snaperiod_2 == 0:
-                    with torch.no_grad():
-                        x = sample_random_batch(test_dset, batch_size=args.bsize)
-                        x = x.to(gpu_cn)
-                        input = x - x * msk + mpv * msk
-                        output = model_cn(input)
-                        completed = poisson_blend(input, output, msk)
-                        imgs = torch.cat((input.cpu(), completed.cpu()), dim=0)
-                        save_image(imgs, os.path.join(args.result_dir, 'phase_2', 'step%d.png' % pbar.n), nrow=len(x))
-                        torch.save(model_cd.state_dict(), os.path.join(args.result_dir, 'phase_2', 'model_cd_step%d' % pbar.n))
-
+                    x = sample_random_batch(test_dset, batch_size=args.bsize)
+                    x = x.to(gpu_cn)
+                    image_filepath = os.path.join(args.result_dir, 'phase_2', 'step%d.png' % pbar.n)
+                    model_filepath = os.path.join(args.result_dir, 'phase_2', 'model_cn_step%d' % pbar.n)
+                    save_completed_images(model_cn, x, msk, mpv, image_filepath)
+                    torch.save(model_cn.state_dict(), model_filepath)
+                # terminate
                 if pbar.n >= args.steps_2:
                     break
     pbar.close()
@@ -336,7 +329,9 @@ def main(args):
             loss_cd.backward()
             cnt_bdivs += 1
             if cnt_bdivs > args.bdivs:
+                # optimize
                 opt_cd.step()
+                # clear grads
                 opt_cd.zero_grad()
 
             # ================================================
@@ -353,28 +348,23 @@ def main(args):
             loss_cn = (loss_cn_1 + alpha * loss_cn_2) / 2.
             loss_cn.backward()
             if cnt_bdivs > args.bdivs:
-                opt_cn.step()
-                opt_cn.zero_grad()
                 cnt_bdivs = 0
-                msg = 'phase 3 |'
-                msg += ' train loss (cd): %.5f' % loss_cd.cpu()
-                msg += ' train loss (cn): %.5f' % loss_cn.cpu()
+                # optimize
+                opt_cn.step()
+                # clear grads
+                opt_cn.zero_grad()
+                # update progbar
                 pbar.set_description('phase 3 | train loss (cd): %.5f (cn): %.5f' % (loss_cd.cpu(), loss_cn.cpu()))
                 pbar.update()
-
                 # test
                 if pbar.n % args.snaperiod_3 == 0:
-                    with torch.no_grad():
-                        x = sample_random_batch(test_dset, batch_size=args.bsize)
-                        x = x.to(gpu_cn)
-                        input = x - x * msk + mpv * msk
-                        output = model_cn(input)
-                        completed = poisson_blend(input, output, msk)
-                        imgs = torch.cat((input.cpu(), completed.cpu()), dim=0)
-                        save_image(imgs, os.path.join(args.result_dir, 'phase_3', 'step%d.png' % pbar.n), nrow=len(x))
-                        torch.save(model_cn.state_dict(), os.path.join(args.result_dir, 'phase_3', 'model_cn_step%d' % pbar.n))
-                        torch.save(model_cd.state_dict(), os.path.join(args.result_dir, 'phase_3', 'model_cd_step%d' % pbar.n))
-
+                    x = sample_random_batch(test_dset, batch_size=args.bsize)
+                    x = x.to(gpu_cn)
+                    image_filepath = os.path.join(args.result_dir, 'phase_3', 'step%d.png' % pbar.n)
+                    model_filepath = os.path.join(args.result_dir, 'phase_3', 'model_cn_step%d' % pbar.n)
+                    save_completed_images(model_cn, x, msk, mpv, image_filepath)
+                    torch.save(model_cn.state_dict(), model_filepath)
+                # terminate
                 if pbar.n >= args.steps_3:
                     break
     pbar.close()
