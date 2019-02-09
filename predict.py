@@ -36,7 +36,7 @@ def main(args):
     # =============================================
     with open(args.config, 'r') as f:
         config = json.load(f)
-    mpv = config['mean_pv']
+    mpv = config['mpv']
     model = CompletionNetwork()
     model.load_state_dict(torch.load(args.model, map_location='cpu'))
 
