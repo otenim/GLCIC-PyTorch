@@ -98,17 +98,18 @@ def main(args):
     test_dset = ImageDataset(os.path.join(args.data_dir, 'test'), trnsfm)
     train_loader = DataLoader(train_dset, batch_size=(args.bsize // args.bdivs), shuffle=True)
 
-    # compute the mean pixel value of train dataset
+    # compute mean pixel value of training dataset
     mpv = 0.
-    pbar = tqdm(total=len(train_dset.imgpaths), desc='computing mean pixel value for dataset...')
+    pbar = tqdm(total=len(train_dset.imgpaths), desc='computing mean pixel value for training dataset...')
     for imgpath in train_dset.imgpaths:
         img = Image.open(imgpath)
         x = np.array(img, dtype=np.float32) / 255.
         mpv += x.mean()
         pbar.update()
-    mpv /= len(imgpaths)
+    mpv /= len(train_dset.imgpaths)
     pbar.close()
     mpv = torch.tensor(mpv).to(gpu_cn)
+    alpha = torch.tensor(args.alpha).to(gpu_cd)
 
     # save training config
     args_dict = vars(args)
@@ -135,8 +136,8 @@ def main(args):
     while pbar.n < args.steps_1:
         for x in train_loader:
 
+            # forward
             x = x.to(gpu_cn)
-
             hole_area = gen_hole_area(
                 size=(args.ld_input_size, args.ld_input_size),
                 mask_size=(x.shape[3], x.shape[2]),
@@ -149,13 +150,11 @@ def main(args):
                 ),
                 hole_area=hole_area,
                 max_holes=args.max_holes,
-            )
-            msk = msk.to(gpu_cn)
-            input = x - x * msk + mpv * msk
-            output = model_cn(input)
+            ).to(gpu_cn)
+            output = model_cn(x - x * msk + mpv * msk)
+            loss = completion_network_loss(x, output, msk)
 
             # backward
-            loss = completion_network_loss(x, output, msk)
             loss.backward()
             cnt_bdivs += 1
             if cnt_bdivs > args.bdivs:
@@ -169,8 +168,7 @@ def main(args):
                 pbar.update()
                 # test
                 if pbar.n % args.snaperiod_1 == 0:
-                    x = sample_random_batch(test_dset, batch_size=args.bsize)
-                    x = x.to(gpu_cn)
+                    x = sample_random_batch(test_dset, batch_size=args.bsize).to(gpu_cn)
                     image_filepath = os.path.join(args.result_dir, 'phase_1', 'step%d.png' % pbar.n)
                     model_filepath = os.path.join(args.result_dir, 'phase_1', 'model_cn_step%d' % pbar.n)
                     save_completed_images(model_cn, x, msk, mpv, image_filepath)
@@ -203,11 +201,8 @@ def main(args):
     while pbar.n < args.steps_2:
         for x in train_loader:
 
+            # fake forward
             x = x.to(gpu_cn)
-
-            # ================================================
-            # fake
-            # ================================================
             hole_area = gen_hole_area(
                 size=(args.ld_input_size, args.ld_input_size),
                 mask_size=(x.shape[3], x.shape[2]),
@@ -220,20 +215,15 @@ def main(args):
                 ),
                 hole_area=hole_area,
                 max_holes=args.max_holes,
-            )
+            ).to(gpu_cn)
             fake = torch.zeros((len(x), 1)).to(gpu_cd)
-            msk = msk.to(gpu_cn)
-            input_cn = x - x * msk + mpv * msk
-            output_cn = model_cn(input_cn)
+            output_cn = model_cn(x - x * msk + mpv * msk)
             input_gd_fake = output_cn.detach()
             input_ld_fake = crop(input_gd_fake, hole_area)
-            input_fake = (input_ld_fake, input_gd_fake)
-            output_fake = model_cd(input_fake)
+            output_fake = model_cd((input_ld_fake.to(gpu_cd), input_gd_fake.to(gpu_cd)))
             loss_fake = bceloss(output_fake, fake)
 
-            # ================================================
-            # real
-            # ================================================
+            # real forward
             hole_area = gen_hole_area(
                 size=(args.ld_input_size, args.ld_input_size),
                 mask_size=(x.shape[3], x.shape[2]),
@@ -241,12 +231,13 @@ def main(args):
             real = torch.ones((len(x), 1)).to(gpu_cd)
             input_gd_real = x
             input_ld_real = crop(input_gd_real, hole_area)
-            input_real = (input_ld_real, input_gd_real)
-            output_real = model_cd(input_real)
+            output_real = model_cd((input_ld_real.to(gpu_cd), input_gd_real.to(gpu_cd)))
             loss_real = bceloss(output_real, real)
 
-            # backward
+            # reduce
             loss = (loss_fake + loss_real) / 2.
+
+            # backward
             loss.backward()
             cnt_bdivs += 1
             if cnt_bdivs > args.bdivs:
@@ -260,8 +251,7 @@ def main(args):
                 pbar.update()
                 # test
                 if pbar.n % args.snaperiod_2 == 0:
-                    x = sample_random_batch(test_dset, batch_size=args.bsize)
-                    x = x.to(gpu_cn)
+                    x = sample_random_batch(test_dset, batch_size=args.bsize).to(gpu_cn)
                     image_filepath = os.path.join(args.result_dir, 'phase_2', 'step%d.png' % pbar.n)
                     model_filepath = os.path.join(args.result_dir, 'phase_2', 'model_cn_step%d' % pbar.n)
                     save_completed_images(model_cn, x, msk, mpv, image_filepath)
@@ -277,16 +267,12 @@ def main(args):
     # ================================================
     # training
     cnt_bdivs = 0
-    alpha = torch.tensor(args.alpha).to(gpu_cd)
     pbar = tqdm(total=args.steps_3)
     while pbar.n < args.steps_3:
         for x in train_loader:
 
+            # forward model_cd
             x = x.to(gpu_cn)
-
-            # ================================================
-            # train model_cd
-            # ================================================
             hole_area = gen_hole_area(
                 size=(args.ld_input_size, args.ld_input_size),
                 mask_size=(x.shape[3], x.shape[2]),
@@ -299,20 +285,17 @@ def main(args):
                 ),
                 hole_area=hole_area,
                 max_holes=args.max_holes,
-            )
+            ).to(gpu_cn)
 
-            # fake
+            # fake forward
             fake = torch.zeros((len(x), 1)).to(gpu_cd)
-            msk = msk.to(gpu_cn)
-            input_cn = x - x * msk + mpv * msk
-            output_cn = model_cn(input_cn)
+            output_cn = model_cn(x - x * msk + mpv * msk)
             input_gd_fake = output_cn.detach()
             input_ld_fake = crop(input_gd_fake, hole_area)
-            input_fake = (input_ld_fake, input_gd_fake)
-            output_fake = model_cd(input_fake)
-            loss_cd_1 = bceloss(output_fake, fake)
+            output_fake = model_cd(input_ld_fake.to(gpu_cd), input_gd_fake.to(gpu_cd))
+            loss_cd_fake = bceloss(output_fake, fake)
 
-            # real
+            # real forward
             hole_area = gen_hole_area(
                 size=(args.ld_input_size, args.ld_input_size),
                 mask_size=(x.shape[3], x.shape[2]),
@@ -320,12 +303,13 @@ def main(args):
             real = torch.ones((len(x), 1)).to(gpu_cd)
             input_gd_real = x
             input_ld_real = crop(input_gd_real, hole_area)
-            input_real = (input_ld_real, input_gd_real)
-            output_real = model_cd(input_real)
-            loss_cd_2 = bceloss(output_real, real)
+            output_real = model_cd((input_ld_real.to(gpu_cd), input_gd_real.to(gpu_cd)))
+            loss_cd_real = bceloss(output_real, real)
 
-            # backward
-            loss_cd = (loss_cd_1 + loss_cd_2) * alpha / 2.
+            # reduce
+            loss_cd = (loss_cd_fake + loss_cd_real) * alpha / 2.
+
+            # backward model_cd
             loss_cd.backward()
             cnt_bdivs += 1
             if cnt_bdivs > args.bdivs:
@@ -334,18 +318,17 @@ def main(args):
                 # clear grads
                 opt_cd.zero_grad()
 
-            # ================================================
-            # train model_cn
-            # ================================================
+            # forward model_cn
             loss_cn_1 = completion_network_loss(x, output_cn, msk).to(gpu_cd)
             input_gd_fake = output_cn
             input_ld_fake = crop(input_gd_fake, hole_area)
-            input_fake = (input_ld_fake, input_gd_fake)
-            output_fake = model_cd(input_fake)
+            output_fake = model_cd((input_ld_fake.to(gpu_cd), (input_gd_fake.to(gpu_cd))))
             loss_cn_2 = bceloss(output_fake, real)
 
-            # backward
+            # reduce
             loss_cn = (loss_cn_1 + alpha * loss_cn_2) / 2.
+
+            # backward model_cn
             loss_cn.backward()
             if cnt_bdivs > args.bdivs:
                 cnt_bdivs = 0
@@ -358,8 +341,7 @@ def main(args):
                 pbar.update()
                 # test
                 if pbar.n % args.snaperiod_3 == 0:
-                    x = sample_random_batch(test_dset, batch_size=args.bsize)
-                    x = x.to(gpu_cn)
+                    x = sample_random_batch(test_dset, batch_size=args.bsize).to(gpu_cn)
                     image_filepath = os.path.join(args.result_dir, 'phase_3', 'step%d.png' % pbar.n)
                     model_filepath = os.path.join(args.result_dir, 'phase_3', 'model_cn_step%d' % pbar.n)
                     save_completed_images(model_cn, x, msk, mpv, image_filepath)
