@@ -43,7 +43,7 @@ parser.add_argument('--cn_input_size', type=int, default=160)
 parser.add_argument('--ld_input_size', type=int, default=96)
 parser.add_argument('--optimizer', type=str, choices=['adadelta', 'adam'], default='adadelta')
 parser.add_argument('--bsize', type=int, default=16)
-parser.add_argument('--batch_divs', type=int, default=1)
+parser.add_argument('--bdivs', type=int, default=1)
 parser.add_argument('--num_gpus', type=int, choices=[1, 2], default=1)
 parser.add_argument('--alpha', type=float, default=4e-4)
 parser.add_argument('--comp_mpv', default=True)
@@ -81,7 +81,6 @@ def main(args):
             os.makedirs(os.path.join(args.result_dir, s))
 
     # dataset
-    bsize_per_divs = args.bsize // args.batch_divs
     trnsfm = transforms.Compose([
         transforms.Resize(args.cn_input_size),
         transforms.RandomCrop((args.cn_input_size, args.cn_input_size)),
@@ -90,7 +89,7 @@ def main(args):
     print('loading dataset... (it may take a few minutes)')
     train_dset = ImageDataset(os.path.join(args.data_dir, 'train'), trnsfm)
     test_dset = ImageDataset(os.path.join(args.data_dir, 'test'), trnsfm)
-    train_loader = DataLoader(train_dset, batch_size=bsize_per_divs, shuffle=True)
+    train_loader = DataLoader(train_dset, batch_size=(args.bsize // args.bdivs), shuffle=True)
 
     # compute the mean pixel value of train dataset
     mean_pv = 0.
@@ -127,7 +126,7 @@ def main(args):
     model_cn = model_cn.to(gpu_cn)
 
     # training
-    cnt_batch_divs = 0
+    cnt_bdivs = 0
     pbar = tqdm(total=args.steps_1)
     while pbar.n < args.steps_1:
         for x in train_loader:
@@ -156,23 +155,26 @@ def main(args):
             input = x - x * msk + mpv * msk
             output = model_cn(input)
 
-            # optimize
+            # backward
             loss = completion_network_loss(x, output, msk)
             loss.backward()
-            cnt_batch_divs += 1
-            if cnt_batch_divs < args.batch_divs:
-                continue
-            cnt_batch_divs = 0
-            opt_cn.step()
-            opt_cn.zero_grad()
-            msg += ' train loss: %.5f' % loss.cpu()
-            pbar.set_description(msg)
-            pbar.update()
+            cnt_bdivs += 1
+            if cnt_bdivs > args.bdivs:
+                
+                # optimize
+                opt_cn.step()
+                cnt_bdivs = 0
 
-            # test
-            if pbar.n % args.snaperiod_1 == 0:
+                # clear grads
+                opt_cn.zero_grad()
+
+                # update progbar
+                pbar.set_description(' train loss: %.5f' % loss.cpu())
+                pbar.update()
+
+                # test
+                if pbar.n % args.snaperiod_1 == 0:
                 with torch.no_grad():
-
                     x = sample_random_batch(test_dset, batch_size=args.bsize)
                     x = x.to(gpu_cn)
                     input = x - x * msk + mpv * msk
@@ -182,8 +184,8 @@ def main(args):
                     save_image(imgs, os.path.join(args.result_dir, 'phase_1', 'step%d.png' % pbar.n), nrow=len(x))
                     torch.save(model_cn.state_dict(), os.path.join(args.result_dir, 'phase_1', 'model_cn_step%d' % pbar.n))
 
-            if pbar.n >= args.steps_1:
-                break
+                if pbar.n >= args.steps_1:
+                    break
     pbar.close()
 
 
@@ -205,7 +207,7 @@ def main(args):
     bceloss = BCELoss()
 
     # training
-    cnt_batch_divs = 0
+    cnt_bdivs = 0
     pbar = tqdm(total=args.steps_2)
     while pbar.n < args.steps_2:
         for x in train_loader:
@@ -261,10 +263,10 @@ def main(args):
             # ================================================
             loss = (loss_fake + loss_real) / 2.
             loss.backward()
-            cnt_batch_divs += 1
-            if cnt_batch_divs < args.batch_divs:
+            cnt_bdivs += 1
+            if cnt_bdivs < args.bdivs:
                 continue
-            cnt_batch_divs = 0
+            cnt_bdivs = 0
             opt_cd.step()
             opt_cd.zero_grad()
 
@@ -295,7 +297,7 @@ def main(args):
     # Training Phase 3
     # ================================================
     # training
-    cnt_batch_divs = 0
+    cnt_bdivs = 0
     alpha = torch.tensor(args.alpha).to(gpu_cd)
     pbar = tqdm(total=args.steps_3)
     while pbar.n < args.steps_3:
@@ -349,8 +351,8 @@ def main(args):
             # optimize
             loss_cd = (loss_cd_1 + loss_cd_2) * alpha / 2.
             loss_cd.backward()
-            cnt_batch_divs += 1
-            if cnt_batch_divs < args.batch_divs:
+            cnt_bdivs += 1
+            if cnt_bdivs < args.bdivs:
                 pass
             else:
                 opt_cd.step()
@@ -369,9 +371,9 @@ def main(args):
             # optimize
             loss_cn = (loss_cn_1 + alpha * loss_cn_2) / 2.
             loss_cn.backward()
-            if cnt_batch_divs < args.batch_divs:
+            if cnt_bdivs < args.bdivs:
                 continue
-            cnt_batch_divs = 0
+            cnt_bdivs = 0
             opt_cn.step()
             opt_cn.zero_grad()
             msg = 'phase 3 |'
