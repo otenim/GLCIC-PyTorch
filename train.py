@@ -44,17 +44,9 @@ parser.add_argument('--ld_input_size', type=int, default=96)
 parser.add_argument('--optimizer', type=str, choices=['adadelta', 'adam'], default='adadelta')
 parser.add_argument('--bsize', type=int, default=16)
 parser.add_argument('--bdivs', type=int, default=1)
+parser.add_argument('--num_test_completions', type=int, default=16)
 parser.add_argument('--num_gpus', type=int, choices=[1, 2], default=1)
 parser.add_argument('--alpha', type=float, default=4e-4)
-
-
-def save_completed_images(model_cn, x, msk, mpv, filepath):
-    with torch.no_grad():
-        input = x - x * msk + mpv * msk
-        output = model_cn(input)
-        completed = poisson_blend(input, output, msk)
-        imgs = torch.cat((input.cpu(), completed.cpu()), dim=0)
-        save_image(imgs, filepath, nrow=len(x))
 
 
 def main(args):
@@ -68,7 +60,6 @@ def main(args):
         args.init_model_cn = os.path.expanduser(args.init_model_cn)
     if args.init_model_cd != None:
         args.init_model_cd = os.path.expanduser(args.init_model_cd)
-
     if torch.cuda.is_available() == False:
         raise Exception('At least one gpu must be available.')
     if args.num_gpus == 1:
@@ -138,17 +129,10 @@ def main(args):
 
             # forward
             x = x.to(gpu_cn)
-            hole_area = gen_hole_area(
-                size=(args.ld_input_size, args.ld_input_size),
-                mask_size=(x.shape[3], x.shape[2]),
-            )
             msk = gen_input_mask(
                 shape=x.shape,
-                hole_size=(
-                    (args.hole_min_w, args.hole_max_w),
-                    (args.hole_min_h, args.hole_max_h),
-                ),
-                hole_area=hole_area,
+                hole_size=((args.hole_min_w, args.hole_max_w), (args.hole_min_h, args.hole_max_h)),
+                hole_area=gen_hole_area((args.ld_input_size, args.ld_input_size), (x.shape[3], x.shape[2])),
                 max_holes=args.max_holes,
             ).to(gpu_cn)
             output = model_cn(x - x * msk + mpv * msk)
@@ -168,11 +152,22 @@ def main(args):
                 pbar.update()
                 # test
                 if pbar.n % args.snaperiod_1 == 0:
-                    x = sample_random_batch(test_dset, batch_size=args.bsize).to(gpu_cn)
-                    image_filepath = os.path.join(args.result_dir, 'phase_1', 'step%d.png' % pbar.n)
-                    model_filepath = os.path.join(args.result_dir, 'phase_1', 'model_cn_step%d' % pbar.n)
-                    save_completed_images(model_cn, x, msk, mpv, image_filepath)
-                    torch.save(model_cn.state_dict(), model_filepath)
+                    with torch.no_grad():
+                        x = sample_random_batch(test_dset, batch_size=args.num_test_completions).to(gpu_cn)
+                        msk = gen_input_mask(
+                            shape=x.shape,
+                            hole_size=((args.hole_min_w, args.hole_max_w), (args.hole_min_h, args.hole_max_h)),
+                            hole_area=gen_hole_area((args.ld_input_size, args.ld_input_size), (x.shape[3], x.shape[2])),
+                            max_holes=args.max_holes,
+                        ).to(gpu_cn)
+                        input = x - x * msk + mpv * msk
+                        output = model_cn(input)
+                        completed = poisson_blend(input, output, msk)
+                        imgs = torch.cat((x.cpu(), input.cpu(), completed.cpu()), dim=0)
+                        imgpath = os.path.join(args.result_dir, 'phase_1', 'step%d.png' % pbar.n)
+                        model_cn_path = os.path.join(args.result_dir, 'phase_1', 'model_cn_step%d' % pbar.n)
+                        save_image(imgs, imgpath, nrow=len(x))
+                        torch.save(model_cn.state_dict(), model_cd_path)
                 # terminate
                 if pbar.n >= args.steps_1:
                     break
@@ -203,17 +198,10 @@ def main(args):
 
             # fake forward
             x = x.to(gpu_cn)
-            hole_area = gen_hole_area(
-                size=(args.ld_input_size, args.ld_input_size),
-                mask_size=(x.shape[3], x.shape[2]),
-            )
             msk = gen_input_mask(
                 shape=x.shape,
-                hole_size=(
-                    (args.hole_min_w, args.hole_max_w),
-                    (args.hole_min_h, args.hole_max_h),
-                ),
-                hole_area=hole_area,
+                hole_size=((args.hole_min_w, args.hole_max_w), (args.hole_min_h, args.hole_max_h)),
+                hole_area=gen_hole_area((args.ld_input_size, args.ld_input_size), (x.shape[3], x.shape[2])),
                 max_holes=args.max_holes,
             ).to(gpu_cn)
             fake = torch.zeros((len(x), 1)).to(gpu_cd)
@@ -224,10 +212,7 @@ def main(args):
             loss_fake = bceloss(output_fake, fake)
 
             # real forward
-            hole_area = gen_hole_area(
-                size=(args.ld_input_size, args.ld_input_size),
-                mask_size=(x.shape[3], x.shape[2]),
-            )
+            hole_area = gen_hole_area(size=(args.ld_input_size, args.ld_input_size), mask_size=(x.shape[3], x.shape[2]))
             real = torch.ones((len(x), 1)).to(gpu_cd)
             input_gd_real = x
             input_ld_real = crop(input_gd_real, hole_area)
@@ -251,11 +236,22 @@ def main(args):
                 pbar.update()
                 # test
                 if pbar.n % args.snaperiod_2 == 0:
-                    x = sample_random_batch(test_dset, batch_size=args.bsize).to(gpu_cn)
-                    image_filepath = os.path.join(args.result_dir, 'phase_2', 'step%d.png' % pbar.n)
-                    model_filepath = os.path.join(args.result_dir, 'phase_2', 'model_cn_step%d' % pbar.n)
-                    save_completed_images(model_cn, x, msk, mpv, image_filepath)
-                    torch.save(model_cn.state_dict(), model_filepath)
+                    with torch.no_grad():
+                        x = sample_random_batch(test_dset, batch_size=args.num_test_completions).to(gpu_cn)
+                        msk = gen_input_mask(
+                            shape=x.shape,
+                            hole_size=((args.hole_min_w, args.hole_max_w), (args.hole_min_h, args.hole_max_h)),
+                            hole_area=gen_hole_area((args.ld_input_size, args.ld_input_size), (x.shape[3], x.shape[2])),
+                            max_holes=args.max_holes,
+                        ).to(gpu_cn)
+                        input = x - x * msk + mpv * msk
+                        output = model_cn(input)
+                        completed = poisson_blend(input, output, msk)
+                        imgs = torch.cat((x.cpu(), input.cpu(), completed.cpu()), dim=0)
+                        imgpath = os.path.join(args.result_dir, 'phase_2', 'step%d.png' % pbar.n)
+                        model_cd_path = os.path.join(args.result_dir, 'phase_2', 'model_cd_step%d' % pbar.n)
+                        save_image(imgs, imgpath, nrow=len(x))
+                        torch.save(model_cd.state_dict(), model_cd_path)
                 # terminate
                 if pbar.n >= args.steps_2:
                     break
@@ -273,17 +269,10 @@ def main(args):
 
             # forward model_cd
             x = x.to(gpu_cn)
-            hole_area = gen_hole_area(
-                size=(args.ld_input_size, args.ld_input_size),
-                mask_size=(x.shape[3], x.shape[2]),
-            )
             msk = gen_input_mask(
                 shape=x.shape,
-                hole_size=(
-                    (args.hole_min_w, args.hole_max_w),
-                    (args.hole_min_h, args.hole_max_h),
-                ),
-                hole_area=hole_area,
+                hole_size=((args.hole_min_w, args.hole_max_w), (args.hole_min_h, args.hole_max_h)),
+                hole_area=gen_hole_area((args.ld_input_size, args.ld_input_size), (x.shape[3], x.shape[2])),
                 max_holes=args.max_holes,
             ).to(gpu_cn)
 
@@ -296,10 +285,7 @@ def main(args):
             loss_cd_fake = bceloss(output_fake, fake)
 
             # real forward
-            hole_area = gen_hole_area(
-                size=(args.ld_input_size, args.ld_input_size),
-                mask_size=(x.shape[3], x.shape[2]),
-            )
+            hole_area = gen_hole_area(size=(args.ld_input_size, args.ld_input_size), mask_size=(x.shape[3], x.shape[2]))
             real = torch.ones((len(x), 1)).to(gpu_cd)
             input_gd_real = x
             input_ld_real = crop(input_gd_real, hole_area)
@@ -341,11 +327,24 @@ def main(args):
                 pbar.update()
                 # test
                 if pbar.n % args.snaperiod_3 == 0:
-                    x = sample_random_batch(test_dset, batch_size=args.bsize).to(gpu_cn)
-                    image_filepath = os.path.join(args.result_dir, 'phase_3', 'step%d.png' % pbar.n)
-                    model_filepath = os.path.join(args.result_dir, 'phase_3', 'model_cn_step%d' % pbar.n)
-                    save_completed_images(model_cn, x, msk, mpv, image_filepath)
-                    torch.save(model_cn.state_dict(), model_filepath)
+                    with torch.no_grad():
+                        x = sample_random_batch(test_dset, batch_size=args.num_test_completions).to(gpu_cn)
+                        msk = gen_input_mask(
+                            shape=x.shape,
+                            hole_size=((args.hole_min_w, args.hole_max_w), (args.hole_min_h, args.hole_max_h)),
+                            hole_area=gen_hole_area((args.ld_input_size, args.ld_input_size), (x.shape[3], x.shape[2])),
+                            max_holes=args.max_holes,
+                        ).to(gpu_cn)
+                        input = x - x * msk + mpv * msk
+                        output = model_cn(input)
+                        completed = poisson_blend(input, output, msk)
+                        imgs = torch.cat((x.cpu(), input.cpu(), completed.cpu()), dim=0)
+                        imgpath = os.path.join(args.result_dir, 'phase_3', 'step%d.png' % pbar.n)
+                        model_cn_path = os.path.join(args.result_dir, 'phase_3', 'model_cn_step%d' % pbar.n)
+                        model_cd_path = os.path.join(args.result_dir, 'phase_3', 'model_cd_step%d' % pbar.n)
+                        save_image(imgs, imgpath, nrow=len(x))
+                        torch.save(model_cn.state_dict(), model_cn_path)
+                        torch.save(model_cd.state_dict(), model_cd_path)
                 # terminate
                 if pbar.n >= args.steps_3:
                     break
