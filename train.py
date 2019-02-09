@@ -202,25 +202,25 @@ def main(args):
 
             # fake forward
             x = x.to(gpu_cn)
-            hole_area = gen_hole_area((args.ld_input_size, args.ld_input_size), (x.shape[3], x.shape[2]))
+            hole_area_fake = gen_hole_area((args.ld_input_size, args.ld_input_size), (x.shape[3], x.shape[2]))
             msk = gen_input_mask(
                 shape=x.shape,
                 hole_size=((args.hole_min_w, args.hole_max_w), (args.hole_min_h, args.hole_max_h)),
-                hole_area=hole_area,
+                hole_area=hole_area_fake,
                 max_holes=args.max_holes,
             ).to(gpu_cn)
             fake = torch.zeros((len(x), 1)).to(gpu_cd)
             output_cn = model_cn(x - x * msk + mpv * msk)
             input_gd_fake = output_cn.detach()
-            input_ld_fake = crop(input_gd_fake, hole_area)
+            input_ld_fake = crop(input_gd_fake, hole_area_fake)
             output_fake = model_cd((input_ld_fake.to(gpu_cd), input_gd_fake.to(gpu_cd)))
             loss_fake = bceloss(output_fake, fake)
 
             # real forward
-            hole_area = gen_hole_area(size=(args.ld_input_size, args.ld_input_size), mask_size=(x.shape[3], x.shape[2]))
+            hole_area_real = gen_hole_area(size=(args.ld_input_size, args.ld_input_size), mask_size=(x.shape[3], x.shape[2]))
             real = torch.ones((len(x), 1)).to(gpu_cd)
             input_gd_real = x
-            input_ld_real = crop(input_gd_real, hole_area)
+            input_ld_real = crop(input_gd_real, hole_area_real)
             output_real = model_cd((input_ld_real.to(gpu_cd), input_gd_real.to(gpu_cd)))
             loss_real = bceloss(output_real, real)
 
@@ -274,11 +274,11 @@ def main(args):
 
             # forward model_cd
             x = x.to(gpu_cn)
-            hole_area = gen_hole_area((args.ld_input_size, args.ld_input_size), (x.shape[3], x.shape[2]))
+            hole_area_fake = gen_hole_area((args.ld_input_size, args.ld_input_size), (x.shape[3], x.shape[2]))
             msk = gen_input_mask(
                 shape=x.shape,
                 hole_size=((args.hole_min_w, args.hole_max_w), (args.hole_min_h, args.hole_max_h)),
-                hole_area=hole_area,
+                hole_area=hole_area_fake,
                 max_holes=args.max_holes,
             ).to(gpu_cn)
 
@@ -286,15 +286,15 @@ def main(args):
             fake = torch.zeros((len(x), 1)).to(gpu_cd)
             output_cn = model_cn(x - x * msk + mpv * msk)
             input_gd_fake = output_cn.detach()
-            input_ld_fake = crop(input_gd_fake, hole_area)
-            output_fake = model_cd(input_ld_fake.to(gpu_cd), input_gd_fake.to(gpu_cd))
+            input_ld_fake = crop(input_gd_fake, hole_area_fake)
+            output_fake = model_cd((input_ld_fake.to(gpu_cd), input_gd_fake.to(gpu_cd)))
             loss_cd_fake = bceloss(output_fake, fake)
 
             # real forward
-            hole_area = gen_hole_area(size=(args.ld_input_size, args.ld_input_size), mask_size=(x.shape[3], x.shape[2]))
+            hole_area_real = gen_hole_area(size=(args.ld_input_size, args.ld_input_size), mask_size=(x.shape[3], x.shape[2]))
             real = torch.ones((len(x), 1)).to(gpu_cd)
             input_gd_real = x
-            input_ld_real = crop(input_gd_real, hole_area)
+            input_ld_real = crop(input_gd_real, hole_area_real)
             output_real = model_cd((input_ld_real.to(gpu_cd), input_gd_real.to(gpu_cd)))
             loss_cd_real = bceloss(output_real, real)
 
@@ -313,7 +313,7 @@ def main(args):
             # forward model_cn
             loss_cn_1 = completion_network_loss(x, output_cn, msk).to(gpu_cd)
             input_gd_fake = output_cn
-            input_ld_fake = crop(input_gd_fake, hole_area)
+            input_ld_fake = crop(input_gd_fake, hole_area_fake)
             output_fake = model_cd((input_ld_fake.to(gpu_cd), (input_gd_fake.to(gpu_cd))))
             loss_cn_2 = bceloss(output_fake, real)
 
