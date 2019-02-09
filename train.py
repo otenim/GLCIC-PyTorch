@@ -202,10 +202,11 @@ def main(args):
 
             # fake forward
             x = x.to(gpu_cn)
+            hole_area = gen_hole_area((args.ld_input_size, args.ld_input_size), (x.shape[3], x.shape[2]))
             msk = gen_input_mask(
                 shape=x.shape,
                 hole_size=((args.hole_min_w, args.hole_max_w), (args.hole_min_h, args.hole_max_h)),
-                hole_area=gen_hole_area((args.ld_input_size, args.ld_input_size), (x.shape[3], x.shape[2])),
+                hole_area=hole_area,
                 max_holes=args.max_holes,
             ).to(gpu_cn)
             fake = torch.zeros((len(x), 1)).to(gpu_cd)
@@ -273,10 +274,11 @@ def main(args):
 
             # forward model_cd
             x = x.to(gpu_cn)
+            hole_area = gen_hole_area((args.ld_input_size, args.ld_input_size), (x.shape[3], x.shape[2]))
             msk = gen_input_mask(
                 shape=x.shape,
                 hole_size=((args.hole_min_w, args.hole_max_w), (args.hole_min_h, args.hole_max_h)),
-                hole_area=gen_hole_area((args.ld_input_size, args.ld_input_size), (x.shape[3], x.shape[2])),
+                hole_area=hole_area,
                 max_holes=args.max_holes,
             ).to(gpu_cn)
 
