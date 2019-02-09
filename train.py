@@ -43,6 +43,7 @@ parser.add_argument('--cn_input_size', type=int, default=160)
 parser.add_argument('--ld_input_size', type=int, default=96)
 parser.add_argument('--optimizer', type=str, choices=['adadelta', 'adam'], default='adadelta')
 parser.add_argument('--bsize', type=int, default=16)
+parser.add_argument('--batch_divs', type=int, default=1)
 parser.add_argument('--num_gpus', type=int, choices=[1, 2], default=1)
 parser.add_argument('--alpha', type=float, default=4e-4)
 parser.add_argument('--comp_mpv', default=True)
@@ -80,6 +81,7 @@ def main(args):
             os.makedirs(os.path.join(args.result_dir, s))
 
     # dataset
+    bsize_per_divs = args.bsize // args.batch_divs
     trnsfm = transforms.Compose([
         transforms.Resize(args.cn_input_size),
         transforms.RandomCrop((args.cn_input_size, args.cn_input_size)),
@@ -88,7 +90,7 @@ def main(args):
     print('loading dataset... (it may take a few minutes)')
     train_dset = ImageDataset(os.path.join(args.data_dir, 'train'), trnsfm)
     test_dset = ImageDataset(os.path.join(args.data_dir, 'test'), trnsfm)
-    train_loader = DataLoader(train_dset, batch_size=args.bsize, shuffle=True)
+    train_loader = DataLoader(train_dset, batch_size=bsize_per_divs, shuffle=True)
 
     # compute the mean pixel value of train dataset
     mean_pv = 0.
@@ -125,11 +127,10 @@ def main(args):
     model_cn = model_cn.to(gpu_cn)
 
     # training
+    cnt_batch_divs = 0
     pbar = tqdm(total=args.steps_1)
     while pbar.n < args.steps_1:
         for x in train_loader:
-
-            opt_cn.zero_grad()
 
             # generate hole area
             hole_area = gen_hole_area(
@@ -158,8 +159,12 @@ def main(args):
             # optimize
             loss = completion_network_loss(x, output, msk)
             loss.backward()
+            if cnt_batch_divs < args.batch_divs:
+                cnt_batch_divs += 1
+                continue
+            cnt_batch_divs = 0
             opt_cn.step()
-
+            opt_cn.zero_grad()
             msg += ' train loss: %.5f' % loss.cpu()
             pbar.set_description(msg)
             pbar.update()
@@ -200,12 +205,12 @@ def main(args):
     bceloss = BCELoss()
 
     # training
+    cnt_batch_divs = 0
     pbar = tqdm(total=args.steps_2)
     while pbar.n < args.steps_2:
         for x in train_loader:
 
             x = x.to(gpu_cn)
-            opt_cd.zero_grad()
 
             # ================================================
             # fake
@@ -256,7 +261,12 @@ def main(args):
             # ================================================
             loss = (loss_fake + loss_real) / 2.
             loss.backward()
+            if cnt_batch_divs < args.batch_divs:
+                cnt_batch_divs += 1
+                continue
+            cnt_batch_divs = 0
             opt_cd.step()
+            opt_cd.zero_grad()
 
             msg = 'phase 2 |'
             msg += ' train loss: %.5f' % loss.cpu()
@@ -285,6 +295,7 @@ def main(args):
     # Training Phase 3
     # ================================================
     # training
+    cnt_batch_divs = 0
     alpha = torch.tensor(args.alpha).to(gpu_cd)
     pbar = tqdm(total=args.steps_3)
     while pbar.n < args.steps_3:
@@ -295,8 +306,6 @@ def main(args):
             # ================================================
             # train model_cd
             # ================================================
-            opt_cd.zero_grad()
-
             # fake
             hole_area = gen_hole_area(
                 size=(args.ld_input_size, args.ld_input_size),
@@ -340,13 +349,15 @@ def main(args):
             # optimize
             loss_cd = (loss_cd_1 + loss_cd_2) * alpha / 2.
             loss_cd.backward()
-            opt_cd.step()
+            if cnt_batch_divs < args.batch_divs:
+                pass
+            else:
+                opt_cd.step()
+                opt_cd.zero_grad()
 
             # ================================================
             # train model_cn
             # ================================================
-            opt_cn.zero_grad()
-
             loss_cn_1 = completion_network_loss(x, output_cn, msk).to(gpu_cd)
             input_gd_fake = output_cn
             input_ld_fake = crop(input_gd_fake, hole_area)
@@ -357,7 +368,12 @@ def main(args):
             # optimize
             loss_cn = (loss_cn_1 + alpha * loss_cn_2) / 2.
             loss_cn.backward()
+            if cnt_batch_divs < args.batch_divs:
+                cnt_batch_divs += 1
+                continue
+            cnt_batch_divs = 0
             opt_cn.step()
+            opt_cn.zero_grad()
 
             msg = 'phase 3 |'
             msg += ' train loss (cd): %.5f' % loss_cd.cpu()
