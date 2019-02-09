@@ -46,6 +46,7 @@ parser.add_argument('--bsize', type=int, default=16)
 parser.add_argument('--bdivs', type=int, default=1)
 parser.add_argument('--num_test_completions', type=int, default=16)
 parser.add_argument('--num_gpus', type=int, choices=[1, 2], default=1)
+parser.add_argument('--mpv', type=float, default=None)
 parser.add_argument('--alpha', type=float, default=4e-4)
 
 
@@ -91,14 +92,17 @@ def main(args):
 
     # compute mean pixel value of training dataset
     mpv = 0.
-    pbar = tqdm(total=len(train_dset.imgpaths), desc='computing mean pixel value for training dataset...')
-    for imgpath in train_dset.imgpaths:
-        img = Image.open(imgpath)
-        x = np.array(img, dtype=np.float32) / 255.
-        mpv += x.mean()
-        pbar.update()
-    mpv /= len(train_dset.imgpaths)
-    pbar.close()
+    if args.mpv == None:
+        pbar = tqdm(total=len(train_dset.imgpaths), desc='computing mean pixel value for training dataset...')
+        for imgpath in train_dset.imgpaths:
+            img = Image.open(imgpath)
+            x = np.array(img, dtype=np.float32) / 255.
+            mpv += x.mean()
+            pbar.update()
+        mpv /= len(train_dset.imgpaths)
+        pbar.close()
+    else:
+        mpv = args.mpv
     mpv = torch.tensor(mpv).to(gpu_cn)
     alpha = torch.tensor(args.alpha).to(gpu_cd)
 
@@ -167,7 +171,7 @@ def main(args):
                         imgpath = os.path.join(args.result_dir, 'phase_1', 'step%d.png' % pbar.n)
                         model_cn_path = os.path.join(args.result_dir, 'phase_1', 'model_cn_step%d' % pbar.n)
                         save_image(imgs, imgpath, nrow=len(x))
-                        torch.save(model_cn.state_dict(), model_cd_path)
+                        torch.save(model_cn.state_dict(), model_cn_path)
                 # terminate
                 if pbar.n >= args.steps_1:
                     break
