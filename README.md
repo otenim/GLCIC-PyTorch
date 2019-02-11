@@ -187,5 +187,5 @@ $ python predict.py results/result/phase_3/model_cn_step{step_number} results/re
 
 ## Future Work
 
-* Provide a model pretrained with [Places2](http://places2.csail.mit.edu/).
-* Provide a model pretrained with [ImageNet](http://www.image-net.org/).
+* **Currently, we are trying to reproduce the paper results using exactly the same model settings including batch size.
+We plan to share the pretrained model and the weights if the experiments succeeded, so please wait little bit more !**
