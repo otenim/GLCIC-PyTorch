@@ -43,6 +43,7 @@ parser.add_argument('--ld_input_size', type=int, default=96)
 parser.add_argument('--optimizer', type=str, choices=['adadelta', 'adam'], default='adadelta')
 parser.add_argument('--bsize', type=int, default=16)
 parser.add_argument('--bdivs', type=int, default=1)
+parser.add_argument('--data_parallel', action='store_true')
 parser.add_argument('--num_test_completions', type=int, default=16)
 parser.add_argument('--mpv', type=float, default=None)
 parser.add_argument('--alpha', type=float, default=4e-4)
@@ -109,6 +110,8 @@ def main(args):
     # Training Phase 1
     # ================================================
     model_cn = CompletionNetwork()
+    if args.data_parallel:
+        model_cn = DataParallel(model_cn)
     if args.init_model_cn != None:
         model_cn.load_state_dict(torch.load(args.init_model_cn, map_location='cpu'))
     if args.optimizer == 'adadelta':
@@ -177,6 +180,8 @@ def main(args):
         local_input_shape=(3, args.ld_input_size, args.ld_input_size),
         global_input_shape=(3, args.cn_input_size, args.cn_input_size),
     )
+    if args.data_parallel:
+        model_cd = DataParallel(model_cd)
     if args.init_model_cd != None:
         model_cd.load_state_dict(torch.load(args.init_model_cd, map_location='cpu'))
     if args.optimizer == 'adadelta':
