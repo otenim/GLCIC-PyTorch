@@ -21,6 +21,7 @@ import os
 import argparse
 import numpy as np
 import json
+import time
 
 parser = argparse.ArgumentParser()
 parser.add_argument('data_dir')
@@ -127,6 +128,7 @@ def main(args):
         for x in train_loader:
 
             # forward
+            stime = time.time()
             x = x.to(gpu)
             msk = gen_input_mask(
                 shape=x.shape,
@@ -139,8 +141,10 @@ def main(args):
 
             # backward
             loss.backward()
+            etime = time.time()
+            print(etime - stime)
             cnt_bdivs += 1
-            if cnt_bdivs > args.bdivs:
+            if cnt_bdivs >= args.bdivs:
                 cnt_bdivs = 0
                 # optimize
                 opt_cn.step()
@@ -227,7 +231,7 @@ def main(args):
             # backward
             loss.backward()
             cnt_bdivs += 1
-            if cnt_bdivs > args.bdivs:
+            if cnt_bdivs >= args.bdivs:
                 cnt_bdivs = 0
                 # optimize
                 opt_cd.step()
@@ -300,12 +304,6 @@ def main(args):
 
             # backward model_cd
             loss_cd.backward()
-            cnt_bdivs += 1
-            if cnt_bdivs > args.bdivs:
-                # optimize
-                opt_cd.step()
-                # clear grads
-                opt_cd.zero_grad()
 
             # forward model_cn
             loss_cn_1 = completion_network_loss(x, output_cn, msk)
@@ -319,11 +317,14 @@ def main(args):
 
             # backward model_cn
             loss_cn.backward()
-            if cnt_bdivs > args.bdivs:
+            
+            if cnt_bdivs >= args.bdivs:
                 cnt_bdivs = 0
                 # optimize
                 opt_cn.step()
+                opt_cn.step()
                 # clear grads
+                opt_cd.zero_grad()
                 opt_cn.zero_grad()
                 # update progbar
                 pbar.set_description('phase 3 | train loss (cd): %.5f (cn): %.5f' % (loss_cd.cpu(), loss_cn.cpu()))
