@@ -128,7 +128,6 @@ def main(args):
         for x in train_loader:
 
             # forward
-            stime = time.time()
             x = x.to(gpu)
             msk = gen_input_mask(
                 shape=x.shape,
@@ -141,9 +140,8 @@ def main(args):
 
             # backward
             loss.backward()
-            etime = time.time()
-            print(etime - stime)
             cnt_bdivs += 1
+
             if cnt_bdivs >= args.bdivs:
                 cnt_bdivs = 0
                 # optimize
@@ -231,6 +229,7 @@ def main(args):
             # backward
             loss.backward()
             cnt_bdivs += 1
+
             if cnt_bdivs >= args.bdivs:
                 cnt_bdivs = 0
                 # optimize
@@ -317,7 +316,8 @@ def main(args):
 
             # backward model_cn
             loss_cn.backward()
-            
+            cnt_bdivs += 1
+
             if cnt_bdivs >= args.bdivs:
                 cnt_bdivs = 0
                 # optimize
