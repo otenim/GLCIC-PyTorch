@@ -3,7 +3,7 @@
 
 ## About this repository
 
-Here, we provide a high-quality pytorch implementation of [GLCIC](http://hi.cs.waseda.ac.jp/~iizuka/projects/completion/data/completion_sig2017.pdf) introduced by Iizuka et. al.
+Here, we provide a pytorch implementation of [GLCIC](http://hi.cs.waseda.ac.jp/~iizuka/projects/completion/data/completion_sig2017.pdf) introduced by Iizuka et. al.
 
 ![glcic](https://i.imgur.com/KY26J85.png)  
 ![result_1](https://i.imgur.com/SYkn6Uo.png)  
@@ -92,19 +92,19 @@ The training procedure consists the following three phases.
 
 Under default settings, the numbers of training steps during phase 1, phase 2, and phase 3 are 90,000, 10,000, and 400,000. Each snapshot period is set to 18,000, 2,000, and 80,000, respectively. Bach size is set to 16, while input image size is 160 x 160 (all the input images are rescalled so that the minumum side is 160, then randomly cropped to 160 x 160 images).
 
-Basically, hyper parameters and the model architecture is exactly the same as described in the paper, but we changed the batch size from 96 to 16 due to lack of GPU memory.
+Basically, hyper parameters and the model architecture (except for batch size) is exactly the same as described in the paper.
 
 ## How to train with your own dataset ?
 
 ### 1. Prepare dataset
 
-To train a model with your own dataset, first you have to make a dataset
+To train a model using your own dataset, first you have to make a dataset
 directory in the following format.
 
 ```
 dataset/ # the directory name can be anything.
     |____train/
-    |       |____XXXX.jpg # png images are also OK.
+    |       |____XXXX.jpg # png images are also accepted.
     |       |____OOOO.jpg
     |____test/
             |____oooo.jpg
@@ -120,7 +120,7 @@ snapshot period.
 ```bash
 # in {path_to_this_repo}/GLCIC-pytorch/,
 $ mv dataset/ datasets/
-$ python train.py datasets/dataset/ results/result/ [--cn_input_size] [--ld_input_size] [--steps_1] [--steps_2] [--steps_3] [--snaperiod_1] [--snaperiod_2] [--snaperiod_3] [--bsize]
+$ python train.py datasets/dataset/ results/result/ [--data_parallel] [--cn_input_size] [--ld_input_size] [--steps_1] [--steps_2] [--steps_3] [--snaperiod_1] [--snaperiod_2] [--snaperiod_3] [--bsize] [--bdivs] [--optimizer]
 ```
 
 Training results for each training phase (trained models and test completion results at each snapshot period) are to be stored in `results/result/`.
@@ -128,6 +128,10 @@ Training results for each training phase (trained models and test completion res
 **Arguments**  
 * `<dataset>` (required): Path to the dataset directory.
 * `<result>` (required): Path to the result directory.
+* `[--data_parallel]`: Suppose you have *N* gpus available, the whole model is copied to the *N* gpus and
+each minibatch of batch size (*bsize* / *N*) is sent to each gpu. Then, all the grads are reduced and
+the updated parameters are broadcasted to all the gpus. The procedure is looped until the training ends.
+You can speed up the training procedure ideally up to *N* times faster. (default: False (store true)).
 * `[--cn_input_size]`: Input size of Completion Network (default: 160). All the input images are rescalled so that the length of the minimum side = cn\_input\_size,
 then randomly cropped to cn\_input\_size x cn\_input\_size images.
 * `[--ld_input_size]`: Input size of Local Discriminator (default: 96).
@@ -145,17 +149,19 @@ then randomly cropped to cn\_input\_size x cn\_input\_size images.
 * `[--hole_min_h]`: The minimum height of a hole (default: 96).
 * `[--hole_max_h]`: The max height of a hole (default: 96).
 * `[--bsize]`: Batch size (default: 16).
+* `[--bdivs]`: Devide a single training step of batch size *bsize* into *bdivs* steps of batch size *bsize / bdivs* on the same gpu, and
+update the parameters every *bdivs* steps. You can get the same training results as when *bdivs == 1* with smaller gpu memory.
+However, the training procedure would somehow slow down due to the spliting.
+If you have enabled [--data_parallel] option and *N* gpus are available, each minibach of batch size *bsize / N* is
+sent to each gpu, then a single training step of batch size *bsize / N* on one gpu is devided into *bdivs* steps of batch size *(bsize / N) / bdivs*,
+and the parameters are updated every *bdivs* steps. (default: 1).
 * `[--optimizer]`: 'adadelta' or 'adam' (default: 'adadelta').
-* `[--num_gpus]`: 1 or 2. If this parameter is set to 1, both Completion Network and
-Context Discriminator are run on a single GPU.
-On the other hand, if it is set to 2, Completion Network and Context Discriminator
-are run on two different gpus separately (default: 1).
 
-**Example**: If you'd like to train a model with batch size 24, and the other parameters are default values, run the following command.
+**Example**: If you'd like to train a model with batch size 24 with data_parallel option, and the other parameters are default values, run the following command.
 
 ```bash
 # in {path_to_this_repo}/GLCIC-pytorch/,
-$ python train.py datasets/dataset results/result --bsize 24
+$ python train.py datasets/dataset results/result --data_parallel --bsize 24
 ```
 
 ## How to infer with your own dataset ?
