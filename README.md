@@ -14,12 +14,12 @@ Here, we provide a pytorch implementation of [GLCIC](http://hi.cs.waseda.ac.jp/~
 We tested our scripts in the following environment.
 
 * Python: 3.5, 3.6
-* torch: 0.4.1, 1.0.0
+* torch: 1.0.0, 1.0.1
 * torchvision: 0.2.1
 * tqdm: 4.24.0
 * Pillow: 5.2.0
-* numpy: <font color="Red">**1.14.5 (important)**</font>
-* pyamg: <font color="Red">**3.3.2 (important)**</font>
+* numpy: 1.14.5, 1.16.1
+* pyamg: 3.3.2, 4.0.0
 * scipy: 1.1.0
 * GPU: Geforce GTX 1080Ti (12GB RAM) X 1
 
