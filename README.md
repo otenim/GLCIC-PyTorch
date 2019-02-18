@@ -29,9 +29,8 @@ use a more than middle-range GPU such as GTX 1070 or GTX 1080(Ti).
 ## DEMO (Inference)
 
 ### 1. Download our pretrained model and the training config file.
-
-Pretrained model: [download](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/ETadvo335qNJvYa-chglWFsBmkVM9xH_c9WkdNkMBpVo2Q?e=H9g60Q)  
-Training config file: [download](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/EWQL72AQjUhNsdsVN-AtAIMBWR_Xx-dBr48gbqpR47mlgQ?e=eCDjcl)
+Pretrained model: [download](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/ETadvo335qNJvYa-chglWFsBmkVM9xH_c9WkdNkMBpVo2Q?e=glCQfb)  
+Training config file: [download](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/EWQL72AQjUhNsdsVN-AtAIMBWR_Xx-dBr48gbqpR47mlgQ?e=uiKzpK)
 
 The pretrained model was trained with [CelebA](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html) dataset,  
 and the training config file saves training settings in json format.
