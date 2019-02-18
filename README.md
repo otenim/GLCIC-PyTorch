@@ -195,5 +195,6 @@ $ python predict.py results/result/phase_3/model_cn_step{step_number} results/re
 
 ## Future Work
 
-* **Currently, we are trying to reproduce the paper results using exactly the same model settings including batch size.
-We plan to share the pretrained model and the weights if the experiments succeeded, so please wait little bit more !**
+* **Currently, we are trying to reproduce the paper results using exactly the same model settings including batch size == 96.
+The pretrained model we provide now is trained with much smaller batch size == 16.
+We plan to share the pretrained model if the experiments succeeded, so please wait little bit more !**
