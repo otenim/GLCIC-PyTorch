@@ -92,8 +92,8 @@ The training procedure consists the following three phases.
 Under default settings, the numbers of training steps during phase 1, phase 2, and phase 3 are 90,000, 10,000, and 400,000. Each snapshot period is set to 18,000, 2,000, and 80,000, respectively. Bach size is set to 16, while input image size is 160 x 160 (all the input images are rescalled so that the minumum side is 160, then randomly cropped to 160 x 160 images).
 
 Basically, hyper parameters and the model architecture (except for batch size) is exactly the same as described in the paper.
-<font color="DeepPink">If you have some gpus and enough memory, you can train models concurrently with larger batch size
-by enabling `[--data_parallel]` option (see [above](#data_parallel))</font>
+**If you have some gpus and enough memory, you can train models concurrently with larger batch size
+by enabling `[--data_parallel]` option (see [above](#data_parallel))**
 
 ## How to train with your own dataset ?
 
