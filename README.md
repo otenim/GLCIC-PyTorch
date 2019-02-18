@@ -92,6 +92,8 @@ The training procedure consists the following three phases.
 Under default settings, the numbers of training steps during phase 1, phase 2, and phase 3 are 90,000, 10,000, and 400,000. Each snapshot period is set to 18,000, 2,000, and 80,000, respectively. Bach size is set to 16, while input image size is 160 x 160 (all the input images are rescalled so that the minumum side is 160, then randomly cropped to 160 x 160 images).
 
 Basically, hyper parameters and the model architecture (except for batch size) is exactly the same as described in the paper.
+If you have some gpus and enough memory, you can train models concurrently with larger batch size
+by enabling `[--data_parallel]` option (see [above](#data_parallel))
 
 ## How to train with your own dataset ?
 
@@ -124,6 +126,7 @@ $ python train.py datasets/dataset/ results/result/ [--data_parallel] [--cn_inpu
 
 Training results for each training phase (trained models and test completion results at each snapshot period) are to be stored in `results/result/`.
 
+<a name="data_parallel"></a>
 **Arguments**  
 * `<dataset>` (required): Path to the dataset directory.
 * `<result>` (required): Path to the result directory.
@@ -151,7 +154,7 @@ then randomly cropped to cn\_input\_size x cn\_input\_size images.
 * `[--bdivs]`: Devide a single training step of batch size *bsize* into *bdivs* steps of batch size *bsize / bdivs* on the same gpu, and
 update the parameters every *bdivs* steps. You can get the same training results as when *bdivs == 1* with smaller gpu memory.
 However, the training procedure would somehow slow down due to the spliting.
-If you have enabled [--data_parallel] option and *N* gpus are available, each minibach of batch size *bsize / N* is
+If you have enabled `[--data_parallel]` option and *N* gpus are available, each minibach of batch size *bsize / N* is
 sent to each gpu, then a single training step of batch size *bsize / N* on one gpu is devided into *bdivs* steps of batch size *(bsize / N) / bdivs*,
 and the parameters are updated every *bdivs* steps. (default: 1).
 * `[--optimizer]`: 'adadelta' or 'adam' (default: 'adadelta').
@@ -194,5 +197,3 @@ $ python predict.py results/result/phase_3/model_cn_step{step_number} results/re
 
 * **Currently, we are trying to reproduce the paper results using exactly the same model settings including batch size.
 We plan to share the pretrained model and the weights if the experiments succeeded, so please wait little bit more !**
-* Adding data-parallel training option.
-* Adding some kind of an option to train models with large batch size.
