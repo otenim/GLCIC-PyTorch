@@ -13,7 +13,7 @@ Here, we provide a pytorch implementation of [GLCIC](http://hi.cs.waseda.ac.jp/~
 
 We tested our scripts in the following environment.
 
-* Python: 3.5, 3.6
+* Python: 3.6.5
 * torch: 1.0.0, 1.0.1
 * torchvision: 0.2.1
 * tqdm: 4.24.0
