@@ -8,11 +8,11 @@ from PIL import Image
 
 
 class ImageDataset(data.Dataset):
-    def __init__(self, data_dir, transform=None):
+    def __init__(self, data_dir, transform=None, recursive_search=False):
         super(ImageDataset, self).__init__()
         self.data_dir = os.path.expanduser(data_dir)
         self.transform = transform
-        self.imgpaths = self.__load_imgpaths_from_dir(self.data_dir)
+        self.imgpaths = self.__load_imgpaths_from_dir(self.data_dir, walk=recursive_search)
 
     def __len__(self):
         return len(self.imgpaths)

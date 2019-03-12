@@ -26,6 +26,7 @@ import time
 parser = argparse.ArgumentParser()
 parser.add_argument('data_dir')
 parser.add_argument('result_dir')
+parser.add_argument('--recursive_search', action='store_true', default=False)
 parser.add_argument('--init_model_cn', type=str, default=None)
 parser.add_argument('--init_model_cd', type=str, default=None)
 parser.add_argument('--steps_1', type=int, default=90000)
@@ -48,6 +49,7 @@ parser.add_argument('--data_parallel', action='store_true')
 parser.add_argument('--num_test_completions', type=int, default=16)
 parser.add_argument('--mpv', type=float, default=None)
 parser.add_argument('--alpha', type=float, default=4e-4)
+parser.add_argument('--arc', type=str, choices=['celeba', 'places2'], default='celeba')
 
 
 def main(args):
@@ -80,8 +82,8 @@ def main(args):
         transforms.ToTensor(),
     ])
     print('loading dataset... (it may take a few minutes)')
-    train_dset = ImageDataset(os.path.join(args.data_dir, 'train'), trnsfm)
-    test_dset = ImageDataset(os.path.join(args.data_dir, 'test'), trnsfm)
+    train_dset = ImageDataset(os.path.join(args.data_dir, 'train'), trnsfm, recursive_search=args.recursive_search)
+    test_dset = ImageDataset(os.path.join(args.data_dir, 'test'), trnsfm, recursive_search=args.recursive_search)
     train_loader = DataLoader(train_dset, batch_size=(args.bsize // args.bdivs), shuffle=True)
 
     # compute mean pixel value of training dataset
@@ -181,6 +183,7 @@ def main(args):
     model_cd = ContextDiscriminator(
         local_input_shape=(3, args.ld_input_size, args.ld_input_size),
         global_input_shape=(3, args.cn_input_size, args.cn_input_size),
+        arc=args.arc,
     )
     if args.data_parallel:
         model_cd = DataParallel(model_cd)
