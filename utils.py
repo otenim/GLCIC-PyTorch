@@ -2,6 +2,7 @@ import torch
 import random
 import torchvision.transforms as transforms
 import numpy as np
+import cv2
 from poissonblending import blend
 
 
@@ -121,6 +122,47 @@ def sample_random_batch(dataset, batch_size=32):
 
 
 def poisson_blend(input, output, mask):
+    """
+    * inputs:
+        - input (torch.Tensor, required)
+                Input image tensor of Completion Network.
+        - output (torch.Tensor, required)
+                Output tensor of Completion Network.
+        - mask (torch.Tensor, required)
+                Input mask tensor of Completion Network.
+    * returns:
+                Image tensor inpainted with poisson image editing method.
+    """
+    input, output, mask = input.clone(), output.clone(), mask.clone()
+    num_samples = input.shape[0]
+    ret = []
+    for i in range(num_samples):
+        dstimg = transforms.functional.to_pil_image(input[i].cpu())
+        dstimg = np.array(dstimg)[:, :, [2, 1, 0]]
+        srcimg = transforms.functional.to_pil_image(output[i].cpu())
+        srcimg = np.array(srcimg)[:, :, [2, 1, 0]]
+        msk = transforms.functional.to_pil_image(mask[i].cpu())
+        msk = np.array(msk)[:, :, [2, 1, 0]]
+        # compute mask's center
+        xs, ys = [], []
+        for i in range(msk.shape[0]):
+            for j in range(msk.shape[1]):
+                if msk[i,j,0] == 255:
+                    ys.append(i)
+                    xs.append(j)
+        xmin, xmax = min(xs), max(xs)
+        ymin, ymax = min(ys), max(ys)
+        center = ((xmax + xmin) // 2, (ymax + ymin) // 2)
+        out = cv2.seamlessClone(srcimg, dstimg, msk, center, cv2.NORMAL_CLONE)
+        out = out[:, :, [2, 1, 0]]
+        out = transforms.functional.to_tensor(out)
+        out = torch.unsqueeze(out, dim=0)
+        ret.append(out)
+    ret = torch.cat(ret, dim=0)
+    return ret
+
+
+def poisson_blend_old(input, output, mask):
     """
     * inputs:
         - input (torch.Tensor, required)
