@@ -67,7 +67,7 @@ def main(args):
     with torch.no_grad():
         input = x - x * msk + mpv * msk
         output = model(input)
-        inpainted = poisson_blend(input, output, msk)
+        inpainted = poisson_blend(x, output, msk)
         imgs = torch.cat((x, input, inpainted), dim=0)
         save_image(imgs, args.output_img, nrow=3)
     print('output img was saved as %s.' % args.output_img)
