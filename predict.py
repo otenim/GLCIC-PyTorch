@@ -2,7 +2,7 @@ import os
 import argparse
 import torch
 import json
-import numpy
+import numpy as np
 import torchvision.transforms as transforms
 from torchvision.utils import save_image
 from models import CompletionNetwork
@@ -36,7 +36,7 @@ def main(args):
     # =============================================
     with open(args.config, 'r') as f:
         config = json.load(f)
-    mpv = config['mpv']
+    mpv = torch.tensor(config['mpv']).view(3,1,1)
     model = CompletionNetwork()
     model.load_state_dict(torch.load(args.model, map_location='cpu'))
 
