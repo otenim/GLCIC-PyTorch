@@ -174,8 +174,8 @@ class GlobalDiscriminator(nn.Module):
         self.bn5 = nn.BatchNorm2d(512)
         self.act5 = nn.ReLU()
         # input_shape: (None, 512, img_h//32, img_w//32)
-        in_features = 512 * (self.img_h//32) * (self.img_w//32)
         if arc == 'celeba':
+            in_features = 512 * (self.img_h//32) * (self.img_w//32)
             self.flatten6 = Flatten()
             self.linear6 = nn.Linear(in_features, 1024)
             self.act6 = nn.ReLU()
@@ -184,6 +184,7 @@ class GlobalDiscriminator(nn.Module):
             self.bn6 = nn.BatchNorm2d(512)
             self.act6 = nn.ReLU()
             # input_shape (None, 512, img_h//64, img_w//64)
+            in_features = 512 * (self.img_h//64) * (self.img_w//64)
             self.flatten7 = Flatten()
             self.linear7 = nn.Linear(in_features, 1024)
             self.act7 = nn.ReLU()
