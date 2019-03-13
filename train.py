@@ -99,7 +99,7 @@ def main(args):
         pbar.close()
     else:
         mpv = np.array(args.mpv)
-    
+
     # save training config
     mpv_json = []
     for i in range(3):
@@ -108,7 +108,7 @@ def main(args):
     args_dict['mpv'] = mpv_json
     with open(os.path.join(args.result_dir, 'config.json'), mode='w') as f:
         json.dump(args_dict, f)
-    
+
     # make mpv & alpha tensor
     mpv = torch.tensor(mpv.astype(np.float32).reshape(3, 1, 1)).to(gpu)
     alpha = torch.tensor(args.alpha).to(gpu)
@@ -170,7 +170,7 @@ def main(args):
                         ).to(gpu)
                         input = x - x * msk + mpv * msk
                         output = model_cn(input)
-                        completed = poisson_blend(input, output, msk)
+                        completed = poisson_blend(x, output, msk)
                         imgs = torch.cat((x.cpu(), input.cpu(), completed.cpu()), dim=0)
                         imgpath = os.path.join(args.result_dir, 'phase_1', 'step%d.png' % pbar.n)
                         model_cn_path = os.path.join(args.result_dir, 'phase_1', 'model_cn_step%d' % pbar.n)
@@ -259,7 +259,7 @@ def main(args):
                         ).to(gpu)
                         input = x - x * msk + mpv * msk
                         output = model_cn(input)
-                        completed = poisson_blend(input, output, msk)
+                        completed = poisson_blend(x, output, msk)
                         imgs = torch.cat((x.cpu(), input.cpu(), completed.cpu()), dim=0)
                         imgpath = os.path.join(args.result_dir, 'phase_2', 'step%d.png' % pbar.n)
                         model_cd_path = os.path.join(args.result_dir, 'phase_2', 'model_cd_step%d' % pbar.n)
@@ -349,7 +349,7 @@ def main(args):
                         ).to(gpu)
                         input = x - x * msk + mpv * msk
                         output = model_cn(input)
-                        completed = poisson_blend(input, output, msk)
+                        completed = poisson_blend(x, output, msk)
                         imgs = torch.cat((x.cpu(), input.cpu(), completed.cpu()), dim=0)
                         imgpath = os.path.join(args.result_dir, 'phase_3', 'step%d.png' % pbar.n)
                         model_cn_path = os.path.join(args.result_dir, 'phase_3', 'model_cn_step%d' % pbar.n)
