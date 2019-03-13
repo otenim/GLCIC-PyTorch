@@ -38,6 +38,8 @@ def main(args):
         config = json.load(f)
     mpv = config['mpv']
     model = CompletionNetwork()
+    if config['data_parallel']:
+        model = torch.nn.DataParallel(model)
     model.load_state_dict(torch.load(args.model, map_location='cpu'))
 
 
