@@ -47,7 +47,7 @@ parser.add_argument('--bsize', type=int, default=16)
 parser.add_argument('--bdivs', type=int, default=1)
 parser.add_argument('--data_parallel', action='store_true')
 parser.add_argument('--num_test_completions', type=int, default=16)
-parser.add_argument('--mpv', type=float, default=None)
+parser.add_argument('--mpv', nargs=3, type=float, default=None)
 parser.add_argument('--alpha', type=float, default=4e-4)
 parser.add_argument('--arc', type=str, choices=['celeba', 'places2'], default='celeba')
 
@@ -87,26 +87,31 @@ def main(args):
     train_loader = DataLoader(train_dset, batch_size=(args.bsize // args.bdivs), shuffle=True)
 
     # compute mean pixel value of training dataset
-    mpv = 0.
+    mpv = np.zeros(shape=(3,))
     if args.mpv == None:
         pbar = tqdm(total=len(train_dset.imgpaths), desc='computing mean pixel value for training dataset...')
         for imgpath in train_dset.imgpaths:
             img = Image.open(imgpath)
             x = np.array(img, dtype=np.float32) / 255.
-            mpv += x.mean()
+            mpv += x.mean(axis=(0,1))
             pbar.update()
         mpv /= len(train_dset.imgpaths)
         pbar.close()
     else:
-        mpv = args.mpv
-    mpv = torch.tensor(mpv).to(gpu)
-    alpha = torch.tensor(args.alpha).to(gpu)
-
+        mpv = np.array(args.mpv)
+    
     # save training config
+    mpv_json = []
+    for i in range(3):
+        mpv_json.append(float(mpv[i])) # convert to json serializable type
     args_dict = vars(args)
-    args_dict['mpv'] = float(mpv)
+    args_dict['mpv'] = mpv_json
     with open(os.path.join(args.result_dir, 'config.json'), mode='w') as f:
         json.dump(args_dict, f)
+    
+    # make mpv & alpha tensor
+    mpv = torch.tensor(mpv.astype(np.float32).reshape(3, 1, 1)).to(gpu)
+    alpha = torch.tensor(args.alpha).to(gpu)
 
 
     # ================================================
