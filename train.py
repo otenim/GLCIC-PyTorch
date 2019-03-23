@@ -165,7 +165,7 @@ def main(args):
                     with torch.no_grad():
                         x = sample_random_batch(test_dset, batch_size=args.num_test_completions).to(gpu)
                         mask = gen_input_mask(
-                            shape=shape=(x.shape[0], 1, x.shape[2], x.shape[3]),
+                            shape=(x.shape[0], 1, x.shape[2], x.shape[3]),
                             hole_size=((args.hole_min_w, args.hole_max_w), (args.hole_min_h, args.hole_max_h)),
                             hole_area=gen_hole_area((args.ld_input_size, args.ld_input_size), (x.shape[3], x.shape[2])),
                             max_holes=args.max_holes,
@@ -214,7 +214,7 @@ def main(args):
             x = x.to(gpu)
             hole_area_fake = gen_hole_area((args.ld_input_size, args.ld_input_size), (x.shape[3], x.shape[2]))
             mask = gen_input_mask(
-                shape=shape=(x.shape[0], 1, x.shape[2], x.shape[3]),
+                shape=(x.shape[0], 1, x.shape[2], x.shape[3]),
                 hole_size=((args.hole_min_w, args.hole_max_w), (args.hole_min_h, args.hole_max_h)),
                 hole_area=hole_area_fake,
                 max_holes=args.max_holes,
@@ -257,7 +257,7 @@ def main(args):
                     with torch.no_grad():
                         x = sample_random_batch(test_dset, batch_size=args.num_test_completions).to(gpu)
                         mask = gen_input_mask(
-                            shape=shape=(x.shape[0], 1, x.shape[2], x.shape[3]),
+                            shape=(x.shape[0], 1, x.shape[2], x.shape[3]),
                             hole_size=((args.hole_min_w, args.hole_max_w), (args.hole_min_h, args.hole_max_h)),
                             hole_area=gen_hole_area((args.ld_input_size, args.ld_input_size), (x.shape[3], x.shape[2])),
                             max_holes=args.max_holes,
