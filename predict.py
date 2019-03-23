@@ -36,7 +36,7 @@ def main(args):
     # =============================================
     with open(args.config, 'r') as f:
         config = json.load(f)
-    mpv = torch.tensor(config['mpv']).view(3,1,1)
+    mpv = torch.tensor(config['mpv']).view(1,3,1,1)
     model = CompletionNetwork()
     if config['data_parallel']:
         model = torch.nn.DataParallel(model)
@@ -54,8 +54,8 @@ def main(args):
     x = torch.unsqueeze(x, dim=0)
 
     # create mask
-    msk = gen_input_mask(
-        shape=x.shape,
+    mask = gen_input_mask(
+        shape=(1, 1, x.shape[2], x.shape[3]),
         hole_size=(
             (args.hole_min_w, args.hole_max_w),
             (args.hole_min_h, args.hole_max_h),
@@ -65,10 +65,11 @@ def main(args):
 
     # inpaint
     with torch.no_grad():
-        input = x - x * msk + mpv * msk
+        x_mask = x - x * mask + mpv * mask
+        input = torch.cat((x_mask, mask), dim=1)
         output = model(input)
-        inpainted = poisson_blend(x, output, msk)
-        imgs = torch.cat((x, input, inpainted), dim=0)
+        inpainted = poisson_blend(x, output, mask)
+        imgs = torch.cat((x, x_mask, inpainted), dim=0)
         save_image(imgs, args.output_img, nrow=3)
     print('output img was saved as %s.' % args.output_img)
 
