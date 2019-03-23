@@ -143,7 +143,7 @@ def main(args):
                 max_holes=args.max_holes,
             ).to(gpu)
             x_mask = x - x * mask + mpv * mask
-            input = torch.cat((x_mask, mask))
+            input = torch.cat((x_mask, mask), dim=1)
             output = model_cn(input)
             loss = completion_network_loss(x, output, mask)
 
@@ -171,7 +171,7 @@ def main(args):
                             max_holes=args.max_holes,
                         ).to(gpu)
                         x_mask = x - x * mask + mpv * mask
-                        input = torch.cat((x_mask, mask))
+                        input = torch.cat((x_mask, mask), dim=1)
                         output = model_cn(input)
                         completed = poisson_blend(x, output, mask)
                         imgs = torch.cat((x.cpu(), x_mask.cpu(), completed.cpu()), dim=0)
@@ -221,7 +221,7 @@ def main(args):
             ).to(gpu)
             fake = torch.zeros((len(x), 1)).to(gpu)
             x_mask = x - x * mask + mpv * mask
-            input_cn = torch.cat((x_mask, mask))
+            input_cn = torch.cat((x_mask, mask), dim=1)
             output_cn = model_cn(input_cn)
             input_gd_fake = output_cn.detach()
             input_ld_fake = crop(input_gd_fake, hole_area_fake)
@@ -263,7 +263,7 @@ def main(args):
                             max_holes=args.max_holes,
                         ).to(gpu)
                         x_mask = x - x * mask + mpv * mask
-                        input = torch.cat((x_mask, mask))
+                        input = torch.cat((x_mask, mask), dim=1)
                         output = model_cn(input)
                         completed = poisson_blend(x, output, mask)
                         imgs = torch.cat((x.cpu(), x_mask.cpu(), completed.cpu()), dim=0)
@@ -299,7 +299,7 @@ def main(args):
             # fake forward
             fake = torch.zeros((len(x), 1)).to(gpu)
             x_mask = x - x * mask + mpv * mask
-            input_cn = torch.cat((x_mask, mask))
+            input_cn = torch.cat((x_mask, mask), dim=1)
             output_cn = model_cn(input_cn)
             input_gd_fake = output_cn.detach()
             input_ld_fake = crop(input_gd_fake, hole_area_fake)
@@ -360,7 +360,7 @@ def main(args):
                             max_holes=args.max_holes,
                         ).to(gpu)
                         x_mask = x - x * mask + mpv * mask
-                        input = torch.cat((x_mask, mask))
+                        input = torch.cat((x_mask, mask), dim=1)
                         output = model_cn(input)
                         completed = poisson_blend(x, output, mask)
                         imgs = torch.cat((x.cpu(), x_mask.cpu(), completed.cpu()), dim=0)
