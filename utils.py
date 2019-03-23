@@ -41,7 +41,7 @@ def gen_input_mask(
     bsize, _, mask_h, mask_w = mask.shape
     for i in range(bsize):
         n_holes = random.choice(list(range(1, max_holes+1)))
-        for j in range(n_holes):
+        for _ in range(n_holes):
             # choose patch width
             if isinstance(hole_size[0], tuple) and len(hole_size[0]) == 2:
                 hole_w = random.randint(hole_size[0][0], hole_size[0][1])
@@ -115,7 +115,7 @@ def sample_random_batch(dataset, batch_size=32):
     """
     num_samples = len(dataset)
     batch = []
-    for i in range(min(batch_size, num_samples)):
+    for _ in range(min(batch_size, num_samples)):
         index = random.choice(range(0, num_samples))
         x = torch.unsqueeze(dataset[index], dim=0)
         batch.append(x)
