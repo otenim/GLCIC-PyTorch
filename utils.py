@@ -141,7 +141,9 @@ def poisson_blend(input, output, mask):
         dstimg = np.array(dstimg)[:, :, [2, 1, 0]]
         srcimg = transforms.functional.to_pil_image(output[i].cpu())
         srcimg = np.array(srcimg)[:, :, [2, 1, 0]]
-        msk = transforms.functional.to_pil_image(mask[i].cpu())
+        msk = mask[i].cpu()
+        msk = torch.((msk,msk,msk), dim=0) # convert to 3-channel format
+        msk = transforms.functional.to_pil_image(msk)
         msk = np.array(msk)[:, :, [2, 1, 0]]
         # compute mask's center
         xs, ys = [], []
