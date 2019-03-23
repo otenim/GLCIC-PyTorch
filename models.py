@@ -7,8 +7,8 @@ from layers import Flatten, Concatenate
 class CompletionNetwork(nn.Module):
     def __init__(self):
         super(CompletionNetwork, self).__init__()
-        # input_shape: (None, 3, img_h, img_w)
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=5, stride=1, padding=2)
+        # input_shape: (None, 4, img_h, img_w)
+        self.conv1 = nn.Conv2d(4, 64, kernel_size=5, stride=1, padding=2)
         self.bn1 = nn.BatchNorm2d(64)
         self.act1 = nn.ReLU()
         # input_shape: (None, 64, img_h, img_w)
