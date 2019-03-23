@@ -110,7 +110,7 @@ def main(args):
         json.dump(args_dict, f)
 
     # make mpv & alpha tensor
-    mpv = torch.tensor(mpv.astype(np.float32).reshape(3, 1, 1)).to(gpu)
+    mpv = torch.tensor(mpv.astype(np.float32).reshape(1, 3, 1, 1)).to(gpu)
     alpha = torch.tensor(args.alpha).to(gpu)
 
 
@@ -136,14 +136,16 @@ def main(args):
 
             # forward
             x = x.to(gpu)
-            msk = gen_input_mask(
-                shape=x.shape,
+            mask = gen_input_mask(
+                shape=(x.shape[0], 1, x.shape[2], x.shape[3]),
                 hole_size=((args.hole_min_w, args.hole_max_w), (args.hole_min_h, args.hole_max_h)),
                 hole_area=gen_hole_area((args.ld_input_size, args.ld_input_size), (x.shape[3], x.shape[2])),
                 max_holes=args.max_holes,
             ).to(gpu)
-            output = model_cn(x - x * msk + mpv * msk)
-            loss = completion_network_loss(x, output, msk)
+            x_mask = x - x * mask + mpv * mask
+            input = torch.cat((x_mask, mask))
+            output = model_cn(input)
+            loss = completion_network_loss(x, output, mask)
 
             # backward
             loss.backward()
@@ -162,16 +164,17 @@ def main(args):
                 if pbar.n % args.snaperiod_1 == 0:
                     with torch.no_grad():
                         x = sample_random_batch(test_dset, batch_size=args.num_test_completions).to(gpu)
-                        msk = gen_input_mask(
-                            shape=x.shape,
+                        mask = gen_input_mask(
+                            shape=shape=(x.shape[0], 1, x.shape[2], x.shape[3]),
                             hole_size=((args.hole_min_w, args.hole_max_w), (args.hole_min_h, args.hole_max_h)),
                             hole_area=gen_hole_area((args.ld_input_size, args.ld_input_size), (x.shape[3], x.shape[2])),
                             max_holes=args.max_holes,
                         ).to(gpu)
-                        input = x - x * msk + mpv * msk
+                        x_mask = x - x * mask + mpv * mask
+                        input = torch.cat((x_mask, mask))
                         output = model_cn(input)
-                        completed = poisson_blend(x, output, msk)
-                        imgs = torch.cat((x.cpu(), input.cpu(), completed.cpu()), dim=0)
+                        completed = poisson_blend(x, output, mask)
+                        imgs = torch.cat((x.cpu(), x_mask.cpu(), completed.cpu()), dim=0)
                         imgpath = os.path.join(args.result_dir, 'phase_1', 'step%d.png' % pbar.n)
                         model_cn_path = os.path.join(args.result_dir, 'phase_1', 'model_cn_step%d' % pbar.n)
                         save_image(imgs, imgpath, nrow=len(x))
@@ -210,14 +213,16 @@ def main(args):
             # fake forward
             x = x.to(gpu)
             hole_area_fake = gen_hole_area((args.ld_input_size, args.ld_input_size), (x.shape[3], x.shape[2]))
-            msk = gen_input_mask(
-                shape=x.shape,
+            mask = gen_input_mask(
+                shape=shape=(x.shape[0], 1, x.shape[2], x.shape[3]),
                 hole_size=((args.hole_min_w, args.hole_max_w), (args.hole_min_h, args.hole_max_h)),
                 hole_area=hole_area_fake,
                 max_holes=args.max_holes,
             ).to(gpu)
             fake = torch.zeros((len(x), 1)).to(gpu)
-            output_cn = model_cn(x - x * msk + mpv * msk)
+            x_mask = x - x * mask + mpv * mask
+            input_cn = torch.cat((x_mask, mask))
+            output_cn = model_cn(input_cn)
             input_gd_fake = output_cn.detach()
             input_ld_fake = crop(input_gd_fake, hole_area_fake)
             output_fake = model_cd((input_ld_fake.to(gpu), input_gd_fake.to(gpu)))
@@ -251,16 +256,17 @@ def main(args):
                 if pbar.n % args.snaperiod_2 == 0:
                     with torch.no_grad():
                         x = sample_random_batch(test_dset, batch_size=args.num_test_completions).to(gpu)
-                        msk = gen_input_mask(
-                            shape=x.shape,
+                        mask = gen_input_mask(
+                            shape=shape=(x.shape[0], 1, x.shape[2], x.shape[3]),
                             hole_size=((args.hole_min_w, args.hole_max_w), (args.hole_min_h, args.hole_max_h)),
                             hole_area=gen_hole_area((args.ld_input_size, args.ld_input_size), (x.shape[3], x.shape[2])),
                             max_holes=args.max_holes,
                         ).to(gpu)
-                        input = x - x * msk + mpv * msk
+                        x_mask = x - x * mask + mpv * mask
+                        input = torch.cat((x_mask, mask))
                         output = model_cn(input)
-                        completed = poisson_blend(x, output, msk)
-                        imgs = torch.cat((x.cpu(), input.cpu(), completed.cpu()), dim=0)
+                        completed = poisson_blend(x, output, mask)
+                        imgs = torch.cat((x.cpu(), x_mask.cpu(), completed.cpu()), dim=0)
                         imgpath = os.path.join(args.result_dir, 'phase_2', 'step%d.png' % pbar.n)
                         model_cd_path = os.path.join(args.result_dir, 'phase_2', 'model_cd_step%d' % pbar.n)
                         save_image(imgs, imgpath, nrow=len(x))
@@ -283,8 +289,8 @@ def main(args):
             # forward model_cd
             x = x.to(gpu)
             hole_area_fake = gen_hole_area((args.ld_input_size, args.ld_input_size), (x.shape[3], x.shape[2]))
-            msk = gen_input_mask(
-                shape=x.shape,
+            mask = gen_input_mask(
+                shape=shape=(x.shape[0], 1, x.shape[2], x.shape[3]),
                 hole_size=((args.hole_min_w, args.hole_max_w), (args.hole_min_h, args.hole_max_h)),
                 hole_area=hole_area_fake,
                 max_holes=args.max_holes,
@@ -292,7 +298,9 @@ def main(args):
 
             # fake forward
             fake = torch.zeros((len(x), 1)).to(gpu)
-            output_cn = model_cn(x - x * msk + mpv * msk)
+            x_mask = x - x * mask + mpv * mask
+            input_cn = torch.cat((x_mask, mask))
+            output_cn = model_cn(input_cn)
             input_gd_fake = output_cn.detach()
             input_ld_fake = crop(input_gd_fake, hole_area_fake)
             output_fake = model_cd((input_ld_fake, input_gd_fake))
@@ -313,7 +321,7 @@ def main(args):
             loss_cd.backward()
 
             # forward model_cn
-            loss_cn_1 = completion_network_loss(x, output_cn, msk)
+            loss_cn_1 = completion_network_loss(x, output_cn, mask)
             input_gd_fake = output_cn
             input_ld_fake = crop(input_gd_fake, hole_area_fake)
             output_fake = model_cd((input_ld_fake, (input_gd_fake)))
@@ -341,16 +349,17 @@ def main(args):
                 if pbar.n % args.snaperiod_3 == 0:
                     with torch.no_grad():
                         x = sample_random_batch(test_dset, batch_size=args.num_test_completions).to(gpu)
-                        msk = gen_input_mask(
-                            shape=x.shape,
+                        mask = gen_input_mask(
+                            shape=shape=(x.shape[0], 1, x.shape[2], x.shape[3]),
                             hole_size=((args.hole_min_w, args.hole_max_w), (args.hole_min_h, args.hole_max_h)),
                             hole_area=gen_hole_area((args.ld_input_size, args.ld_input_size), (x.shape[3], x.shape[2])),
                             max_holes=args.max_holes,
                         ).to(gpu)
-                        input = x - x * msk + mpv * msk
+                        x_mask = x - x * mask + mpv * mask
+                        input = torch.cat((x_mask, mask))
                         output = model_cn(input)
-                        completed = poisson_blend(x, output, msk)
-                        imgs = torch.cat((x.cpu(), input.cpu(), completed.cpu()), dim=0)
+                        completed = poisson_blend(x, output, mask)
+                        imgs = torch.cat((x.cpu(), x_mask.cpu(), completed.cpu()), dim=0)
                         imgpath = os.path.join(args.result_dir, 'phase_3', 'step%d.png' % pbar.n)
                         model_cn_path = os.path.join(args.result_dir, 'phase_3', 'model_cn_step%d' % pbar.n)
                         model_cd_path = os.path.join(args.result_dir, 'phase_3', 'model_cd_step%d' % pbar.n)
