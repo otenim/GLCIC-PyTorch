@@ -12,20 +12,20 @@ def gen_input_mask(
     """
     * inputs:
         - shape (sequence, required):
-                Shape of output mask.
-                A 4D tuple (samples, c, h, w) is assumed.
+                Shape of a mask tensor to be generated.
+                A sequence of length 4 (N, C, H, W) is assumed.
         - hole_size (sequence or int, required):
                 Size of holes created in a mask.
-                If a sequence of length 4 provided,
-                holes of size (w, h) = (
+                If a sequence of length 4 is provided,
+                holes of size (W, H) = (
                     hole_size[0][0] <= hole_size[0][1],
                     hole_size[1][0] <= hole_size[1][1],
                 ) are generated.
-                All the pixel values within holes are filled with 1.
+                All the pixel values within holes are filled with 1.0.
         - hole_area (sequence, optional):
                 This argument constraints the area where holes are generated.
-                hole_area[0] is the left corner (x, y) of the area,
-                while hole_area[1] is its width and height (w, h).
+                hole_area[0] is the left corner (X, Y) of the area,
+                while hole_area[1] is its width and height (W, H).
                 This area is used as the input region of Local discriminator.
                 The default value is None.
         - max_holes (int, optional):
@@ -33,13 +33,12 @@ def gen_input_mask(
                 The number of holes is randomly chosen from [1, max_holes].
                 The default value is 1.
     * returns:
-            Input mask tensor with holes.
-            All the pixel values within holes are filled with 1,
-            while the other pixel values are 0.
+            A mask tensor of shape [N, C, H, W] with holes.
+            All the pixel values within holes are filled with 1.0,
+            while the other pixel values are zeros.
     """
     mask = torch.zeros(shape)
     bsize, _, mask_h, mask_w = mask.shape
-    masks = []
     for i in range(bsize):
         n_holes = random.choice(list(range(1, max_holes+1)))
         for j in range(n_holes):
@@ -72,11 +71,13 @@ def gen_hole_area(size, mask_size):
     """
     * inputs:
         - size (sequence, required)
-                Size (w, h) of hole area.
+                A sequence of length 2 (W, H) is assumed.
+                (W, H) is the size of hole area.
         - mask_size (sequence, required)
-                Size (w, h) of input mask.
+                A sequence of length 2 (W, H) is assumed.
+                (W, H) is the size of input mask.
     * returns:
-            A sequence which is used for the input argument 'hole_area' of function 'gen_input_mask'.
+            A sequence used for the input argument 'hole_area' for function 'gen_input_mask'.
     """
     mask_w, mask_h = mask_size
     harea_w, harea_h = size
@@ -89,13 +90,13 @@ def crop(x, area):
     """
     * inputs:
         - x (torch.Tensor, required)
-                A pytorch 4D tensor (samples, c, h, w).
+                A torch tensor of shape (N, C, H, W) is assumed.
         - area (sequence, required)
-                A sequence of length 2 ((x_min, y_min), (w, h)).
-                sequence[0] is the left corner of the area to be cropped.
-                sequence[1] is its width and height.
+                A sequence of length 2 ((X, Y), (W, H)) is assumed.
+                sequence[0] (X, Y) is the left corner of an area to be cropped.
+                sequence[1] (W, H) is its width and height.
     * returns:
-            A pytorch tensor cropped in the specified area.
+            A torch tensor of shape (N, C, H, W) cropped in the specified area.
     """
     xmin, ymin = area[0]
     w, h = area[1]
@@ -121,29 +122,31 @@ def sample_random_batch(dataset, batch_size=32):
     return torch.cat(batch, dim=0)
 
 
-def poisson_blend(input, output, mask):
+def poisson_blend(x, output, mask):
     """
     * inputs:
-        - input (torch.Tensor, required)
-                Input image tensor of Completion Network.
+        - x (torch.Tensor, required)
+                Input image tensor of shape (N, 3, H, W).
         - output (torch.Tensor, required)
-                Output tensor of Completion Network.
+                Output tensor from Completion Network of shape (N, 3, H, W).
         - mask (torch.Tensor, required)
-                Input mask tensor of Completion Network.
+                Input mask tensor of shape (N, 1, H, W).
     * returns:
-                Image tensor inpainted with poisson image editing method.
+                An image tensor of shape (N, 3, H, W) inpainted
+                using poisson image editing method.
     """
-    input, output, mask = input.clone(), output.clone(), mask.clone()
-    num_samples = input.shape[0]
+    x = x.clone().cpu()
+    output = output.clone().cpu()
+    mask = mask.clone().cpu()
+    mask = torch.cat((mask,mask,mask), dim=1) # convert to 3-channel format
+    num_samples = x.shape[0]
     ret = []
     for i in range(num_samples):
-        dstimg = transforms.functional.to_pil_image(input[i].cpu())
+        dstimg = transforms.functional.to_pil_image(x[i])
         dstimg = np.array(dstimg)[:, :, [2, 1, 0]]
-        srcimg = transforms.functional.to_pil_image(output[i].cpu())
+        srcimg = transforms.functional.to_pil_image(output[i])
         srcimg = np.array(srcimg)[:, :, [2, 1, 0]]
-        msk = mask[i].cpu()
-        msk = torch.((msk,msk,msk), dim=0) # convert to 3-channel format
-        msk = transforms.functional.to_pil_image(msk)
+        msk = transforms.functional.to_pil_image(mask[i])
         msk = np.array(msk)[:, :, [2, 1, 0]]
         # compute mask's center
         xs, ys = [], []
