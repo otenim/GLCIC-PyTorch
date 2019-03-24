@@ -321,7 +321,6 @@ def main(args):
             loss_cd.backward()
 
             cnt_bdivs += 1
-            print(cnt_bdivs)
             if cnt_bdivs >= args.bdivs:
                 # optimize
                 opt_cd.step()
