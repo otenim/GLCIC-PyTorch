@@ -307,6 +307,13 @@ def main(args):
             # backward model_cd
             loss_cd.backward()
 
+            cnt_bdivs += 1
+            if cnt_bdivs >= args.bdivs:
+                # optimize
+                opt_cd.step()
+                # clear grads
+                opt_cd.zero_grad()
+
             # forward model_cn
             loss_cn_1 = completion_network_loss(x, output_cn, msk)
             input_gd_fake = output_cn
@@ -319,15 +326,12 @@ def main(args):
 
             # backward model_cn
             loss_cn.backward()
-            cnt_bdivs += 1
 
             if cnt_bdivs >= args.bdivs:
                 cnt_bdivs = 0
                 # optimize
                 opt_cn.step()
-                opt_cn.step()
                 # clear grads
-                opt_cd.zero_grad()
                 opt_cn.zero_grad()
                 # update progbar
                 pbar.set_description('phase 3 | train loss (cd): %.5f (cn): %.5f' % (loss_cd.cpu(), loss_cn.cpu()))
