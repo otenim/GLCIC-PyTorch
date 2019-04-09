@@ -4,9 +4,12 @@
 
 In this repository, we provide a pytorch-based implementation of [GLCIC](http://hi.cs.waseda.ac.jp/~iizuka/projects/completion/data/completion_sig2017.pdf) introduced by Iizuka et. al.
 
+**RELEASE 4/9/2019 We finally succeeded to reproduce the paper result on CelebA dataset, and updated the pretrained model to the new one. Thanks for your long patience and please enjoy.**
+
 ![glcic](https://i.imgur.com/KY26J85.png)  
-![result_1](https://i.imgur.com/mkjGj4N.jpg)
-![result_2](https://i.imgur.com/WfQPwhz.jpg)
+![result_1](https://i.imgur.com/LTYCUup.jpg)
+![result_2](https://i.imgur.com/RR7MhNS.jpg)
+![result_3](https://i.imgur.com/xOrTR4n.jpg)
 
 ## Dependencies
 
@@ -28,8 +31,8 @@ use a more than middle-range GPU such as GTX 1070(Ti) or GTX 1080(Ti).
 ## DEMO (Inference)
 
 ### 1. Download our pretrained model and the training config file.
-* Pretrained model: [download](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/EUv1eHhZc11IrhjkBKcdWh8BCkcFVYnaI9a9sw_Rfqq9VA?e=8nqpP2)
-* Training config file: [download](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/EfPj4t02MiJFv2VD7OTHOeoBn4x2XlM_6tiUpKbia4xx4A?e=3lgzaF)
+* Pretrained model: [download](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/EZa4dRJjc4tLjI_RMfqOv2cBJPcQz5zdIgzvI8Bra6miLQ?e=bNr3Y2)
+* Training config file: [download](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/EQGdhhq2nepAggxQtRp3goYB1IkLBZZZTMbXWlsqo35haA?e=u98gzl)
 
 The pretrained model was trained on the [CelebA](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html) dataset
 and the training config file stores training settings in json format.
@@ -93,8 +96,9 @@ Each snapshot period is set to 10,000, 2,000, and 10,000.
 Bach size is 16.
 Size of an input image is 160 x 160 (all input images are rescalled so that the minumum side is 160, then randomly cropped to 160 x 160 images).
 
-Basically, hyper-parameters and the model architecture (except for batch size) is exactly the same as described in the paper.
-**You can train models with larger batch size by enabling `[--data_parallel]` flag (see [here](#data_parallel)) if you have some gpus and enough size of memory.**
+Basically, the default hyper-parameters we use in `train.py` are set to the same settings as those used in the original paper **except for batch size due to lack of GPU memories**.
+Please run the training script with batch size == 96 if you would like to reproduce the paper result (the pretrained model now we are sharing is trained with batch size == 96).
+You can train a model with larger batch size by enabling `[--data_parallel]` flag (see [here](#data_parallel)) if you have some gpus and enough size of GPU memories.
 
 ## How to train with your own dataset ?
 
@@ -192,9 +196,3 @@ then randomly cropped to img\_size x img\_size images (default: 160).
 # in {path_to_this_repo}/GLCIC-PyTorch/,
 $ python predict.py results/result/phase_3/model_cn_step{step_number} results/result/config.json input.jpg output.jpg
 ```
-
-## Future Work
-
-* **Currently, we are trying to reproduce the paper results using exactly the same model settings including batch size == 96.
-The pretrained model we provide now is trained with much smaller batch size == 16.
-We plan to share the pretrained model if the experiments succeeded, so please wait little bit more !**
