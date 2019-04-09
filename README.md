@@ -130,7 +130,6 @@ $ python train.py datasets/dataset/ results/result/ [--data_parallel] [--cn_inpu
 
 Results for each training phase (trained models and test inpainting results) are to be stored in `results/result/`.
 
-<a name="data_parallel"></a>
 **Arguments**  
 * `<dataset>` (required): Path to the dataset directory.
 * `<result>` (required): Path to the result directory.
@@ -163,6 +162,7 @@ sent to each gpu. Then a single training step of batch size *bsize / N* on a sin
 and the parameters are updated every *bdivs* steps. (default: 1).
 * `[--optimizer]`: 'adadelta' or 'adam' (default: 'adadelta').
 
+<a name="data_parallel"></a>
 **Example**: If you'd like to train a model with batch size 24 with data_parallel option and the other parameters are default values, run the following command.
 
 ```bash
