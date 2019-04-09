@@ -98,7 +98,7 @@ Size of an input image is 160 x 160 (all input images are rescalled so that the 
 
 Basically, the default hyper-parameters we use in `train.py` are set to the same settings as those used in the original paper **except for batch size due to lack of GPU memories**.
 Please run the training script with batch size == 96 if you would like to reproduce the paper result (the pretrained model now we are sharing is trained with batch size == 96).
-You can train a model with larger batch size by enabling `[--data_parallel]` flag (see [here](#data_parallel)) if you have some gpus and enough size of GPU memories.
+You can train a model with larger batch size by enabling `[--data_parallel]` flag (see [here](#data_parallel)) or tuning `[--bsize]` if you have some gpus and enough size of GPU memories.
 
 ## How to train with your own dataset ?
 
