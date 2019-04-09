@@ -4,7 +4,7 @@
 
 In this repository, we provide a pytorch-based implementation of [GLCIC](http://hi.cs.waseda.ac.jp/~iizuka/projects/completion/data/completion_sig2017.pdf) introduced by Iizuka et. al.
 
-**RELEASE 4/9/2019 We finally succeeded to reproduce the paper result on CelebA dataset, and updated the pretrained model to the new one. Thanks for your long patience and please enjoy.**
+**4/9/2019: We finally succeeded to reproduce the paper result on CelebA dataset, and updated the pretrained model to the new one. Thanks for your long patience and please enjoy.**
 
 ![glcic](https://i.imgur.com/KY26J85.png)  
 ![result_1](https://i.imgur.com/LTYCUup.jpg)
