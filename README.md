@@ -30,12 +30,14 @@ use a more than middle-range GPU such as GTX 1070(Ti) or GTX 1080(Ti).
 
 ## DEMO (Inference)
 
-### 1. Download our pretrained model and the training config file.
-* Pretrained model: [download](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/EZa4dRJjc4tLjI_RMfqOv2cBJPcQz5zdIgzvI8Bra6miLQ?e=bNr3Y2)
+### 1. Download our pretrained generator and its training config file.
+* Pretrained generator (Completion Network): [download](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/EZa4dRJjc4tLjI_RMfqOv2cBJPcQz5zdIgzvI8Bra6miLQ?e=bNr3Y2)
+* Pretrained discriminator (Context Discriminator): [download](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/ERsyRa7I4nVGsnhxjSy8xZ8BqYV_uhYSPc87mMSdZl9OWw?e=nujVQe)(optional)
 * Training config file: [download](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/EQGdhhq2nepAggxQtRp3goYB1IkLBZZZTMbXWlsqo35haA?e=u98gzl)
 
-The pretrained model was trained on the [CelebA](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html) dataset
-and the training config file stores training settings in json format.
+Both of the generator and the discriminator were trained on the [CelebA](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html) dataset.
+You don't have to download the discriminator since only a generator model is needed to perform image completion (a discriminator is used only during training).
+The training config file stores training settings in json format.
 
 ### 2. Inference
 
@@ -56,7 +58,7 @@ Right: output image of Completion Network
 
 ## DEMO (Training)
 
-In this section, we introduce how to train a model using CelebA dataset.
+In this section, we introduce how to train a glcic model using CelebA dataset.
 
 ### 1. Download the dataset
 
