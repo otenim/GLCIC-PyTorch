@@ -36,7 +36,7 @@ use a more than middle-range GPU such as GTX 1070(Ti) or GTX 1080(Ti).
 * Training config file: [download](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/EQGdhhq2nepAggxQtRp3goYB1IkLBZZZTMbXWlsqo35haA?e=u98gzl)
 
 Both of the generator and the discriminator were trained on the [CelebA](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html) dataset.
-You don't have to download the discriminator since only a generator model is needed to perform image completion (a discriminator is used only during training).
+You don't have to download the discriminator since only a generator is needed to perform image completion (a discriminator is used only during training).
 The training config file stores training settings in json format.
 
 ### 2. Inference
