@@ -1,5 +1,3 @@
-img_align_celeba
-img_align_celeba.tar.gz
-places2
-places2_test
-places2.tar.gz
+img_align_celeba/
+places2/
+*.tar.gz
