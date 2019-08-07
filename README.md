@@ -31,9 +31,9 @@ use a more than middle-range GPU such as GTX 1070(Ti) or GTX 1080(Ti).
 ## DEMO (Inference)
 
 ### 1. Download our pretrained generator and its training config file.
-* Pretrained generator (Completion Network): [download](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/EZa4dRJjc4tLjI_RMfqOv2cBJPcQz5zdIgzvI8Bra6miLQ?e=bNr3Y2)
-* Pretrained discriminator (Context Discriminator): [download](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/ERsyRa7I4nVGsnhxjSy8xZ8BqYV_uhYSPc87mMSdZl9OWw?e=nujVQe)(optional)
-* Training config file: [download](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/EQGdhhq2nepAggxQtRp3goYB1IkLBZZZTMbXWlsqo35haA?e=u98gzl)
+* Pretrained generator (Completion Network): [download](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/EZmwLEHNXDNDkAzM7BFOpRABIbuW8iakXEiSWfPBx-4NQA?e=bzej00)
+* Pretrained discriminator (Context Discriminator): [download](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/EdEPzkhWS0xAhq0p_xON7tIBiX_HKviUAgvU-rLtF6uo8w?e=da8QDm) (optional)
+* Training config file: [download](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/EWGLy7HYSfxNusolMnlFdPYBQ-osGwfNexe87AjmwSwlQQ?e=t5g7w3)
 
 Both of the generator and the discriminator were trained on the [CelebA](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html) dataset.
 You don't have to download the discriminator since only a generator is needed to perform image completion (a discriminator is used only during training).
