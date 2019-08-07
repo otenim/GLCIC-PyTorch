@@ -178,7 +178,10 @@ def main(args):
                         imgpath = os.path.join(args.result_dir, 'phase_1', 'step%d.png' % pbar.n)
                         model_cn_path = os.path.join(args.result_dir, 'phase_1', 'model_cn_step%d' % pbar.n)
                         save_image(imgs, imgpath, nrow=len(x))
-                        torch.save(model_cn.state_dict(), model_cn_path)
+                        if args.data_parallel:
+                            torch.save(model_cn.module.state_dict(), model_cn_path)
+                        else:
+                            torch.save(model_cn.state_dict(), model_cn_path)
                 # terminate
                 if pbar.n >= args.steps_1:
                     break
@@ -270,7 +273,10 @@ def main(args):
                         imgpath = os.path.join(args.result_dir, 'phase_2', 'step%d.png' % pbar.n)
                         model_cd_path = os.path.join(args.result_dir, 'phase_2', 'model_cd_step%d' % pbar.n)
                         save_image(imgs, imgpath, nrow=len(x))
-                        torch.save(model_cd.state_dict(), model_cd_path)
+                        if args.data_parallel:
+                            torch.save(model_cd.module.state_dict(), model_cd_path)
+                        else:
+                            torch.save(model_cd.state_dict(), model_cd_path)
                 # terminate
                 if pbar.n >= args.steps_2:
                     break
@@ -368,8 +374,12 @@ def main(args):
                         model_cn_path = os.path.join(args.result_dir, 'phase_3', 'model_cn_step%d' % pbar.n)
                         model_cd_path = os.path.join(args.result_dir, 'phase_3', 'model_cd_step%d' % pbar.n)
                         save_image(imgs, imgpath, nrow=len(x))
-                        torch.save(model_cn.state_dict(), model_cn_path)
-                        torch.save(model_cd.state_dict(), model_cd_path)
+                        if args.data_parallel:
+                            torch.save(model_cn.module.state_dict(), model_cn_path)
+                            torch.save(model_cd.module.state_dict(), model_cd_path)
+                        else:
+                            torch.save(model_cn.state_dict(), model_cn_path)
+                            torch.save(model_cd.state_dict(), model_cd_path)
                 # terminate
                 if pbar.n >= args.steps_3:
                     break
