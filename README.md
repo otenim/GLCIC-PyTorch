@@ -30,9 +30,9 @@ to execute the training script (i.e., train.py).
 ## DEMO (Inference)
 
 ### 1. Download pretrained generator model and training config file.
-* Pretrained generator model (Completion Network): [download](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/EZmwLEHNXDNDkAzM7BFOpRABIbuW8iakXEiSWfPBx-4NQA?e=bzej00)
-* Pretrained discriminator model (Context Discriminator): [download](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/EdEPzkhWS0xAhq0p_xON7tIBiX_HKviUAgvU-rLtF6uo8w?e=da8QDm) (optional)
-* Training config file: [download](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/EWGLy7HYSfxNusolMnlFdPYBQ-osGwfNexe87AjmwSwlQQ?e=t5g7w3)
+* [Required] Pretrained generator model (Completion Network): [download (onedrive)](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/EZmwLEHNXDNDkAzM7BFOpRABIbuW8iakXEiSWfPBx-4NQA?e=bzej00), [download (google drive)](https://drive.google.com/open?id=11hemcglluPPqG9rqQeoQGfZiw1P0LrxH)
+* [Optional] Pretrained discriminator model (Context Discriminator): [download (onedrive)](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/EdEPzkhWS0xAhq0p_xON7tIBiX_HKviUAgvU-rLtF6uo8w?e=da8QDm), [download (google drive)](https://drive.google.com/open?id=1NIVlvPidgpbCcu-HEbH-hnGYuJHlLgKT)
+* [Required] Training config file: [download (onedrive)](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/EWGLy7HYSfxNusolMnlFdPYBQ-osGwfNexe87AjmwSwlQQ?e=t5g7w3), [download (google drive)](https://drive.google.com/open?id=1HlVLaz-GLEzwIYnLrnW1v_F6vMAz0ycJ)
 
 Both the generator and discriminator models were trained on the [CelebA](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html) dataset.
 Note that you don't need to get the dicriminator model because only generator is necessary
