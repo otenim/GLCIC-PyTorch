@@ -15,13 +15,12 @@ This repository provides a pytorch-based implementation of [GLCIC](http://hi.cs.
 The scripts were tested in the following environment.
 
 * Python: 3.6.5
-* torch: 1.0.1.post2
-* torchvision: 0.2.2.post3
-* tqdm: 4.31.1
-* Pillow: 5.4.1
-* opencv-python: 4.0.0.21 
-* numpy: 1.16.2
-* scipy: 1.2.1
+* torch: 1.5.0 (cuda 10.0)
+* torchvision: 0.6.0
+* tqdm: 4.46.0
+* Pillow: 7.1.2
+* opencv-python: 4.2.0
+* numpy: 1.18.4
 * GPU: Geforce GTX 1080Ti (12GB RAM) X 4
 
 A middle-class GPU (e.g., GTX1070(Ti) or GTX1080(Ti)) is required
