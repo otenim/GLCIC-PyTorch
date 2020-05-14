@@ -173,7 +173,7 @@ def main(args):
                         x_mask = x - x * mask + mpv * mask
                         input = torch.cat((x_mask, mask), dim=1)
                         output = model_cn(input)
-                        completed = poisson_blend(x, output, mask)
+                        completed = poisson_blend(x_mask, output, mask)
                         imgs = torch.cat((x.cpu(), x_mask.cpu(), completed.cpu()), dim=0)
                         imgpath = os.path.join(args.result_dir, 'phase_1', 'step%d.png' % pbar.n)
                         model_cn_path = os.path.join(args.result_dir, 'phase_1', 'model_cn_step%d' % pbar.n)
@@ -268,7 +268,7 @@ def main(args):
                         x_mask = x - x * mask + mpv * mask
                         input = torch.cat((x_mask, mask), dim=1)
                         output = model_cn(input)
-                        completed = poisson_blend(x, output, mask)
+                        completed = poisson_blend(x_mask, output, mask)
                         imgs = torch.cat((x.cpu(), x_mask.cpu(), completed.cpu()), dim=0)
                         imgpath = os.path.join(args.result_dir, 'phase_2', 'step%d.png' % pbar.n)
                         model_cd_path = os.path.join(args.result_dir, 'phase_2', 'model_cd_step%d' % pbar.n)
@@ -368,7 +368,7 @@ def main(args):
                         x_mask = x - x * mask + mpv * mask
                         input = torch.cat((x_mask, mask), dim=1)
                         output = model_cn(input)
-                        completed = poisson_blend(x, output, mask)
+                        completed = poisson_blend(x_mask, output, mask)
                         imgs = torch.cat((x.cpu(), x_mask.cpu(), completed.cpu()), dim=0)
                         imgpath = os.path.join(args.result_dir, 'phase_3', 'step%d.png' % pbar.n)
                         model_cn_path = os.path.join(args.result_dir, 'phase_3', 'model_cn_step%d' % pbar.n)
