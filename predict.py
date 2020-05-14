@@ -66,7 +66,7 @@ def main(args):
         x_mask = x - x * mask + mpv * mask
         input = torch.cat((x_mask, mask), dim=1)
         output = model(input)
-        inpainted = poisson_blend(x, output, mask)
+        inpainted = poisson_blend(x_mask, output, mask)
         imgs = torch.cat((x, x_mask, inpainted), dim=0)
         save_image(imgs, args.output_img, nrow=3)
     print('output img was saved as %s.' % args.output_img)

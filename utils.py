@@ -158,6 +158,7 @@ def poisson_blend(x, output, mask):
         xmin, xmax = min(xs), max(xs)
         ymin, ymax = min(ys), max(ys)
         center = ((xmax + xmin) // 2, (ymax + ymin) // 2)
+        dstimg = cv2.inpaint(dstimg, msk[:, :, 0], 1, cv2.INPAINT_TELEA)
         out = cv2.seamlessClone(srcimg, dstimg, msk, center, cv2.NORMAL_CLONE)
         out = out[:, :, [2, 1, 0]]
         out = transforms.functional.to_tensor(out)
