@@ -3,7 +3,6 @@ import torch
 import torchvision.transforms as transforms
 import numpy as np
 import cv2
-from poissonblending import blend
 
 
 def gen_input_mask(
@@ -162,36 +161,5 @@ def poisson_blend(input, output, mask):
         out = transforms.functional.to_tensor(out)
         out = torch.unsqueeze(out, dim=0)
         ret.append(out)
-    ret = torch.cat(ret, dim=0)
-    return ret
-
-
-def poisson_blend_old(input, output, mask):
-    """
-    * inputs:
-        - input (torch.Tensor, required)
-                Input tensor of Completion Network, whose shape = (N, 3, H, W).
-        - output (torch.Tensor, required)
-                Output tensor of Completion Network, whose shape = (N, 3, H, W).
-        - mask (torch.Tensor, required)
-                Input mask tensor of Completion Network, whose shape = (N, 1, H, W).
-    * returns:
-                Output image tensor of shape (N, 3, H, W) inpainted with poisson image editing method.
-    """
-    num_samples = input.shape[0]
-    ret = []
-
-    # convert torch array to numpy array followed by
-    # converting 'channel first' format to 'channel last' format.
-    input_np = np.transpose(np.copy(input.cpu().numpy()), axes=(0, 2, 3, 1))
-    output_np = np.transpose(np.copy(output.cpu().numpy()), axes=(0, 2, 3, 1))
-    mask_np = np.transpose(np.copy(mask.cpu().numpy()), axes=(0, 2, 3, 1))
-
-    # apply poisson image editing method for each input/output image and mask.
-    for i in range(num_samples):
-        inpainted_np = blend(input_np[i], output_np[i], mask_np[i])
-        inpainted = torch.from_numpy(np.transpose(inpainted_np, axes=(2, 0, 1)))
-        inpainted = torch.unsqueeze(inpainted, dim=0)
-        ret.append(inpainted)
     ret = torch.cat(ret, dim=0)
     return ret
