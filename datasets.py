@@ -1,9 +1,7 @@
-import torch.utils.data as data
+
 import os
-import torch
-import tqdm
 import imghdr
-import random
+import torch.utils.data as data
 from PIL import Image
 
 
@@ -28,14 +26,13 @@ class ImageDataset(data.Dataset):
         filepath = os.path.expanduser(filepath)
         if os.path.isfile(filepath) and imghdr.what(filepath):
             return True
-        else:
-            return False
+        return False
 
-    def __load_imgpaths_from_dir(self, dirpath, walk=False, allowed_formats=None):
+    def __load_imgpaths_from_dir(self, dirpath, walk=False):
         imgpaths = []
         dirpath = os.path.expanduser(dirpath)
         if walk:
-            for (root, dirs, files) in os.walk(dirpath):
+            for (root, _, files) in os.walk(dirpath):
                 for file in files:
                     file = os.path.join(root, file)
                     if self.__is_imgfile(file):

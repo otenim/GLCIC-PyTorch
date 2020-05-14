@@ -1,5 +1,5 @@
-import torch
 import random
+import torch
 import torchvision.transforms as transforms
 import numpy as np
 import cv2
@@ -7,8 +7,7 @@ from poissonblending import blend
 
 
 def gen_input_mask(
-    shape, hole_size,
-    hole_area=None, max_holes=1):
+        shape, hole_size, hole_area=None, max_holes=1):
     """
     * inputs:
         - shape (sequence, required):
@@ -122,27 +121,26 @@ def sample_random_batch(dataset, batch_size=32):
     return torch.cat(batch, dim=0)
 
 
-def poisson_blend(x, output, mask):
+def poisson_blend(input, output, mask):
     """
     * inputs:
-        - x (torch.Tensor, required)
-                Input image tensor of shape (N, 3, H, W).
+        - input (torch.Tensor, required)
+                Input tensor of Completion Network, whose shape = (N, 3, H, W).
         - output (torch.Tensor, required)
-                Output tensor from Completion Network of shape (N, 3, H, W).
+                Output tensor of Completion Network, whose shape = (N, 3, H, W).
         - mask (torch.Tensor, required)
-                Input mask tensor of shape (N, 1, H, W).
+                Input mask tensor of Completion Network, whose shape = (N, 1, H, W).
     * returns:
-                An image tensor of shape (N, 3, H, W) inpainted
-                using poisson image editing method.
+                Output image tensor of shape (N, 3, H, W) inpainted with poisson image editing method.
     """
-    x = x.clone().cpu()
+    input = input.clone().cpu()
     output = output.clone().cpu()
     mask = mask.clone().cpu()
-    mask = torch.cat((mask,mask,mask), dim=1) # convert to 3-channel format
-    num_samples = x.shape[0]
+    mask = torch.cat((mask, mask, mask), dim=1) # convert to 3-channel format
+    num_samples = input.shape[0]
     ret = []
     for i in range(num_samples):
-        dstimg = transforms.functional.to_pil_image(x[i])
+        dstimg = transforms.functional.to_pil_image(input[i])
         dstimg = np.array(dstimg)[:, :, [2, 1, 0]]
         srcimg = transforms.functional.to_pil_image(output[i])
         srcimg = np.array(srcimg)[:, :, [2, 1, 0]]
@@ -150,11 +148,11 @@ def poisson_blend(x, output, mask):
         msk = np.array(msk)[:, :, [2, 1, 0]]
         # compute mask's center
         xs, ys = [], []
-        for i in range(msk.shape[0]):
-            for j in range(msk.shape[1]):
-                if msk[i,j,0] == 255:
-                    ys.append(i)
-                    xs.append(j)
+        for j in range(msk.shape[0]):
+            for k in range(msk.shape[1]):
+                if msk[j, k, 0] == 255:
+                    ys.append(j)
+                    xs.append(k)
         xmin, xmax = min(xs), max(xs)
         ymin, ymax = min(ys), max(ys)
         center = ((xmax + xmin) // 2, (ymax + ymin) // 2)
@@ -172,13 +170,13 @@ def poisson_blend_old(input, output, mask):
     """
     * inputs:
         - input (torch.Tensor, required)
-                Input tensor of Completion Network.
+                Input tensor of Completion Network, whose shape = (N, 3, H, W).
         - output (torch.Tensor, required)
-                Output tensor of Completion Network.
+                Output tensor of Completion Network, whose shape = (N, 3, H, W).
         - mask (torch.Tensor, required)
-                Input mask tensor of Completion Network.
+                Input mask tensor of Completion Network, whose shape = (N, 1, H, W).
     * returns:
-                Image tensor inpainted using poisson image editing method.
+                Output image tensor of shape (N, 3, H, W) inpainted with poisson image editing method.
     """
     num_samples = input.shape[0]
     ret = []

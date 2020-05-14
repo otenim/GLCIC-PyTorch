@@ -1,12 +1,12 @@
 import os
 import argparse
-import torch
 import json
-import numpy as np
+import torch
 import torchvision.transforms as transforms
 from torchvision.utils import save_image
-from models import CompletionNetwork
+import numpy as np
 from PIL import Image
+from models import CompletionNetwork
 from utils import poisson_blend, gen_input_mask
 
 
@@ -36,7 +36,7 @@ def main(args):
     # =============================================
     with open(args.config, 'r') as f:
         config = json.load(f)
-    mpv = torch.tensor(config['mpv']).view(1,3,1,1)
+    mpv = torch.tensor(config['mpv']).view(1, 3, 1, 1)
     model = CompletionNetwork()
     model.load_state_dict(torch.load(args.model, map_location='cpu'))
 

@@ -1,3 +1,14 @@
+import json
+import os
+import argparse
+from torch.utils.data import DataLoader
+from torch.optim import Adadelta, Adam
+from torch.nn import BCELoss, DataParallel
+from torchvision.utils import save_image
+from PIL import Image
+import torchvision.transforms as transforms
+import torch
+import numpy as np
 from tqdm import tqdm
 from models import CompletionNetwork, ContextDiscriminator
 from datasets import ImageDataset
@@ -9,19 +20,6 @@ from utils import (
     sample_random_batch,
     poisson_blend,
 )
-from torch.utils.data import DataLoader
-from torch.optim import Adadelta, Adam
-from torch.nn import BCELoss, DataParallel
-from torchvision.utils import save_image
-from PIL import Image
-import torchvision.transforms as transforms
-import torch
-import random
-import os
-import argparse
-import numpy as np
-import json
-import time
 
 parser = argparse.ArgumentParser()
 parser.add_argument('data_dir')
