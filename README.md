@@ -96,7 +96,7 @@ Run the following command.
 
 ```bash
 # in <path-to-this-repo>
-$ python train.py datasets/img_align_celeba results/demo/
+python train.py datasets/img_align_celeba results/demo/
 ```
 
 Training results (model snapshots & test inpainted outputs) are to be saved in ``results/demo/``.
@@ -134,9 +134,9 @@ Both `dataset/train` and `dataset/test` are required.
 ```bash
 # in <path-to-this-repo>/
 # move dataset
-$ mv dataset/ datasets/
+mv dataset/ datasets/
 # execute training
-$ python train.py datasets/dataset/ results/result/ [--data_parallel (store true)] [--cn_input_size (int)] [--ld_input_size (int)] [--init_model_cn (str)] [--init_model_cd (str)] [--steps_1 (int)] [--steps_2 (int)] [--steps_3 (int)] [--snaperiod_1 (int)] [--snaperiod_2 (int)] [--snaperiod_3 (int)] [--bsize (int)] [--bdivs (int)]
+python train.py datasets/dataset/ results/result/ [--data_parallel (store true)] [--cn_input_size (int)] [--ld_input_size (int)] [--init_model_cn (str)] [--init_model_cd (str)] [--steps_1 (int)] [--steps_2 (int)] [--steps_3 (int)] [--snaperiod_1 (int)] [--snaperiod_2 (int)] [--snaperiod_3 (int)] [--bsize (int)] [--bdivs (int)]
 ```
 
 <a name="arguments"></a>
@@ -166,7 +166,7 @@ $ python train.py datasets/dataset/ results/result/ [--data_parallel (store true
 
 ```bash
 # in <path-to-this-repo>/
-$ python train.py datasets/dataset results/result --data_parallel --bsize 24
+python train.py datasets/dataset results/result --data_parallel --bsize 24
 ```
 
 ## How to perform infenrece with custom dataset ?
@@ -175,7 +175,7 @@ Assume you've finished training and result directory is `<path-to-this-repo>/res
 
 ```bash
 # in <path-to-this-repo>/
-$ python predict.py results/result/phase_3/model_cn_step<step-number> results/result/config.json <input_img> <output_img> [--max_holes (int)] [--img_size (int)] [--hole_min_w (int)] [--hole_max_w (int)] [--hole_min_h (int)] [--hole_max_h (int)]
+python predict.py results/result/phase_3/model_cn_step<step-number> results/result/config.json <input_img> <output_img> [--max_holes (int)] [--img_size (int)] [--hole_min_w (int)] [--hole_max_w (int)] [--hole_min_h (int)] [--hole_max_h (int)]
 ```
 
 **Arguments**  
@@ -192,5 +192,5 @@ $ python predict.py results/result/phase_3/model_cn_step<step-number> results/re
 
 ```bash
 # in <path-to-this-repo>/
-$ python predict.py results/result/phase_3/model_cn_step{step_number} results/result/config.json input.jpg output.jpg
+python predict.py results/result/phase_3/model_cn_step{step_number} results/result/config.json input.jpg output.jpg
 ```
