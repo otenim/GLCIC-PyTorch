@@ -188,7 +188,7 @@ $ python predict.py results/result/phase_3/model_cn_step<step-number> results/re
 * `[--hole_min_h (int)]`: minimum height of a hole (default: 24).
 * `[--hole_max_h (int)]`: maximum height of a hole (default: 48).
 
-**Example**: If you'd like to make an inference with an input image `<path-to-this-repo>/input.jpg` and create an output image `<path-to-this-repo>/output.jpg`, run the following command.
+**Example**: If you make an inference with an input image `<path-to-this-repo>/input.jpg` and save output image as `<path-to-this-repo>/output.jpg`, run the following command.
 
 ```bash
 # in <path-to-this-repo>/
