@@ -62,6 +62,7 @@ def main(args):
     )
 
     # inpaint
+    model.eval()
     with torch.no_grad():
         x_mask = x - x * mask + mpv * mask
         input = torch.cat((x_mask, mask), dim=1)

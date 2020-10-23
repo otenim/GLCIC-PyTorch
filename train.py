@@ -169,6 +169,7 @@ def main(args):
 
                 # test
                 if pbar.n % args.snaperiod_1 == 0:
+                    model_cn.eval()
                     with torch.no_grad():
                         x = sample_random_batch(
                             test_dset,
@@ -207,6 +208,7 @@ def main(args):
                             torch.save(
                                 model_cn.state_dict(),
                                 model_cn_path)
+                    model_cn.train()
                 if pbar.n >= args.steps_1:
                     break
     pbar.close()
@@ -285,6 +287,7 @@ def main(args):
 
                 # test
                 if pbar.n % args.snaperiod_2 == 0:
+                    model_cn.eval()
                     with torch.no_grad():
                         x = sample_random_batch(
                             test_dset,
@@ -323,6 +326,7 @@ def main(args):
                             torch.save(
                                 model_cd.state_dict(),
                                 model_cd_path)
+                    model_cn.train()
                 if pbar.n >= args.steps_2:
                     break
     pbar.close()
@@ -405,6 +409,7 @@ def main(args):
 
                 # test
                 if pbar.n % args.snaperiod_3 == 0:
+                    model_cn.eval()
                     with torch.no_grad():
                         x = sample_random_batch(
                             test_dset,
@@ -453,6 +458,7 @@ def main(args):
                             torch.save(
                                 model_cd.state_dict(),
                                 model_cd_path)
+                    model_cn.train()
                 if pbar.n >= args.steps_3:
                     break
     pbar.close()
