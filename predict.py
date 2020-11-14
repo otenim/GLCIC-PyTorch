@@ -30,7 +30,6 @@ def main(args):
     args.input_img = os.path.expanduser(args.input_img)
     args.output_img = os.path.expanduser(args.output_img)
 
-
     # =============================================
     # Load model
     # =============================================
@@ -39,7 +38,6 @@ def main(args):
     mpv = torch.tensor(config['mpv']).view(1, 3, 1, 1)
     model = CompletionNetwork()
     model.load_state_dict(torch.load(args.model, map_location='cpu'))
-
 
     # =============================================
     # Predict

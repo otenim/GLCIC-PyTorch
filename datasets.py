@@ -40,7 +40,7 @@ class ImageDataset(data.Dataset):
         else:
             for path in os.listdir(dirpath):
                 path = os.path.join(dirpath, path)
-                if self.__is_imgfile(path) == False:
+                if not self.__is_imgfile(path):
                     continue
                 imgpaths.append(path)
         return imgpaths

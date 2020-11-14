@@ -61,7 +61,7 @@ def gen_input_mask(
             else:
                 offset_x = random.randint(0, mask_w - hole_w)
                 offset_y = random.randint(0, mask_h - hole_h)
-            mask[i, :, offset_y : offset_y + hole_h, offset_x : offset_x + hole_w] = 1.0
+            mask[i, :, offset_y: offset_y + hole_h, offset_x: offset_x + hole_w] = 1.0
     return mask
 
 
@@ -98,7 +98,7 @@ def crop(x, area):
     """
     xmin, ymin = area[0]
     w, h = area[1]
-    return x[:, :, ymin : ymin + h, xmin : xmin + w]
+    return x[:, :, ymin: ymin + h, xmin: xmin + w]
 
 
 def sample_random_batch(dataset, batch_size=32):
@@ -135,7 +135,7 @@ def poisson_blend(input, output, mask):
     input = input.clone().cpu()
     output = output.clone().cpu()
     mask = mask.clone().cpu()
-    mask = torch.cat((mask, mask, mask), dim=1) # convert to 3-channel format
+    mask = torch.cat((mask, mask, mask), dim=1)  # convert to 3-channel format
     num_samples = input.shape[0]
     ret = []
     for i in range(num_samples):

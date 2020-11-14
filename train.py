@@ -213,7 +213,6 @@ def main(args):
                     break
     pbar.close()
 
-
     # ================================================
     # Training Phase 2
     # ================================================
@@ -222,7 +221,7 @@ def main(args):
         local_input_shape=(3, args.ld_input_size, args.ld_input_size),
         global_input_shape=(3, args.cn_input_size, args.cn_input_size),
         arc=args.arc)
-    if args.init_model_cd != None:
+    if args.init_model_cd is not None:
         model_cd.load_state_dict(torch.load(
             args.init_model_cd,
             map_location='cpu'))
@@ -255,8 +254,8 @@ def main(args):
             output_cn = model_cn(input_cn)
             input_gd_fake = output_cn.detach()
             input_ld_fake = crop(input_gd_fake, hole_area_fake)
-            output_fake = model_cd(
-                (input_ld_fake.to(gpu),
+            output_fake = model_cd((
+                input_ld_fake.to(gpu),
                 input_gd_fake.to(gpu)))
             loss_fake = bceloss(output_fake, fake)
 
@@ -330,7 +329,6 @@ def main(args):
                 if pbar.n >= args.steps_2:
                     break
     pbar.close()
-
 
     # ================================================
     # Training Phase 3
