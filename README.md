@@ -43,9 +43,9 @@ pip install -r requirements.txt
 ## DEMO (Inference)
 
 ### 1. Download pretrained generator model and training config file.
-* [Required] Pretrained generator model (Completion Network): [download (onedrive)](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/EZmwLEHNXDNDkAzM7BFOpRABIbuW8iakXEiSWfPBx-4NQA?e=bzej00), [download (google drive)](https://drive.google.com/open?id=11hemcglluPPqG9rqQeoQGfZiw1P0LrxH)
-* [Optional] Pretrained discriminator model (Context Discriminator): [download (onedrive)](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/EdEPzkhWS0xAhq0p_xON7tIBiX_HKviUAgvU-rLtF6uo8w?e=da8QDm), [download (google drive)](https://drive.google.com/open?id=1NIVlvPidgpbCcu-HEbH-hnGYuJHlLgKT)
-* [Required] Training config file: [download (onedrive)](https://keiojp0-my.sharepoint.com/:u:/g/personal/snake_istobelieve_keio_jp/EWGLy7HYSfxNusolMnlFdPYBQ-osGwfNexe87AjmwSwlQQ?e=t5g7w3), [download (google drive)](https://drive.google.com/open?id=1HlVLaz-GLEzwIYnLrnW1v_F6vMAz0ycJ)
+* [Required] Pretrained generator model (Completion Network): [download (google drive)](https://drive.google.com/file/d/1hsi1Fy0ITiZYTsJ_De-nAVUciuJ8Bql9/view?usp=sharing)
+* [Optional] Pretrained discriminator model (Context Discriminator): [download (google drive)](https://drive.google.com/file/d/1_jRuqirwOuiJCg1H73LSq1HuwyG2GON4/view?usp=sharing)
+* [Required] Training config file: [download (google drive)](https://drive.google.com/file/d/1yGfQp8U5zcVRYOBxF3-VCZ8TnMAtWBsk/view?usp=sharing)
 
 Both the generator and discriminator were trained on the [CelebA](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html) dataset.
 Note that you don't need to have dicriminator when performing image completion (discriminator is needed only during training).
