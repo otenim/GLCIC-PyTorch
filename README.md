@@ -26,7 +26,7 @@ Our scripts were tested in the following environment.
 
 * Python: 3.7.6
 * torch: 1.9.0 (cuda 11.1)
-* torchvision: 0.10.0
+* torchvision: 0.10.0 (cuda 11.1)
 * tqdm: 4.61.1
 * Pillow: 8.2.0
 * opencv-python: 4.5.2.54
@@ -37,7 +37,7 @@ You can install all the requirements by executing below.
 
 ```sh
 # in <path-to-this-repo>/
-pip install -r requirements.txt
+pip install -r requirements.txt -f https://download.pytorch.org/whl/torch_stable.html
 ```
 
 ## DEMO (Inference)
